@@ -1,54 +1,9 @@
-# ts-argue (working title)
-
-An opinionated framework for creating modern CLI applications in Node.js, with a simple and composable approach to command definitions.
-
-Whereas most CLI frameworks use the builder pattern for defining the behavior of the application ts-argue defines a pattern for a command object. These commands can then be composed into a tree of sub-commands to define your application. In addition to defining the application behavior this tree of commands auto-generates contextual help text and suggestions.
-
-## Example
-
-As an example lets create a simple CRUD application that stores contacts. We will have 5 sub-commands: create, read, list, update and delete. If we don't specify a sub-command we will list the contacts. This is what our application will look like.
-
-```txt
-> contacts create 'Jane Doe' --mobile '01234 567890' --email 'janedoe@unknown.com'
- 
-  Created new entry for 'Jane Doe'
-
-> contacts read 'Jane Doe'
-       
-  Name: Jane Doe
-  Mobile: 01234 567890
-  Email: janedoe@unknown.com
-
-> contacts list
-
-  Contacts
-  - Jane Doe
-
-> contacts
-
-  Contacts
-  - Jane Doe
-
-> contacts update 'Jane Doe' --name 'Jenny Doe' --mobile '01111 567890' --email 'jennydoe@unknown.com'
-
-  Updated contact details for 'Jane Doe'
-
-  Name: Jenny Doe
-  Mobile: 01111 567890
-  Email: jennydoe@unknown.com
-
-> contacts delete 'Jenny Doe'
-
-  Deleted contact 'Jenny Doe'
-```
-
-```typescript
-import type { Argv, Command } from 'ts-argue';
+import type { Argv, Command } from '../../src';
 import type { Contact } from './database';
 
 // our actual storage and persistence will be dealt with outside of our UI layer 
 import { contact_database } from './database';
-import { read_string_option, run_command, log, style } from 'ts-argue';
+import { read_string_option, run_command, log, style } from '../../src';
 
 // first we define each sub-command
 // the create command has a few options, and requires an argument
@@ -190,10 +145,3 @@ const root_command: Command = {
 // finally to actually execute our application we call run_command with our
 // root command and our arguments. there is no need to trim the arguments
 void run_command(root_command, process.argv, { version: '1' });
-```
-
-You can try the above example by downloading this repo, installing the dev dependencies and running `npm run example` ( this uses ts-node so there is a bit of a delay which wouldn't be present in a production application ).
-
-## Project Status
-
-This library has only been used for proof of concepts at the moment, and is not considered complete. It is being developed side by side another project, and the aim is to produce a 1.0.0 release around the time that project is complete.
