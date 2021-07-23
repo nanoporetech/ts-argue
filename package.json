@@ -12,7 +12,7 @@
     "lint": "eslint src/*"
   },
   "author": "Iain Shorter <iainshorter@gmail.com>",
-  "license": "MIT",
+  "license": "MPL-2.0",
   "devDependencies": {
     "@types/jest": "^26.0.24",
     "@types/mri": "^1.1.1",
