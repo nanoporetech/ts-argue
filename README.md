@@ -189,7 +189,7 @@ const root_command: Command = {
 
 // finally to actually execute our application we call run_command with our
 // root command and our arguments. there is no need to trim the arguments
-void run_command(root_command, process.argv, { version: '1' });
+void run_command(root_command, { version: '1' });
 ```
 
 You can try the above example by downloading this repo, installing the dev dependencies and running `npm run example` ( this uses ts-node so there is a bit of a delay which wouldn't be present in a production application ).

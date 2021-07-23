@@ -16,6 +16,10 @@ export function root_executable (exe_name: string): string {
 	return exe_name.split('-')[0];
 } 
 
+export function nice_executable_name (exe_name: string): string {
+  return exe_name.split('-').join(' ');
+}
+
 export function rename_executable_and_remove_subcommmand (argv: Argv, exe_name: string): Argv {
 	// this is technically removing the executable, and renaming the subcommand to the executable
 	// but the end effect is the same
@@ -36,7 +40,7 @@ export function remove_executable (argv: Argv): Argv {
 
 export function parse_argv(args: string[]): Argv {
 	// TODO replace mri with custom implementation
-	const { _, ...options} = mri(args.slice(1));
+	const { _, ...options} = mri(args);
 	return {
 		arguments: Array.from(_), // wrapper required to make array readonly
 		options: new Map(Object.entries(options).map(([name, value]) => [name, makeString(value)])),
