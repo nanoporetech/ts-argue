@@ -8,7 +8,7 @@ import { print_did_you_mean } from './print_did_you_mean';
 import { print_help } from './print_help';
 import { print_version } from './print_version';
 import { read_boolean_option, remove_executable, rename_executable, rename_executable_and_remove_subcommmand, root_executable } from './Argv';
-import { EXIT_CODE } from './ExitCode';
+import { EXIT_CODE } from './exit_code.constants';
 import { log } from './Logger';
 
 export async function run_command_with_options (command: Command, opts: Argv, cfg: Configuration): Promise<number> {
