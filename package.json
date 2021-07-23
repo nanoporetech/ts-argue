@@ -5,6 +5,7 @@
   "types": "mjs/index.d.ts",
   "scripts": {
     "test": "jest --verbose --coverage",
+    "example": "ts-node ./examples/contacts",
     "typecheck": "tsc --noEmit --watch",
     "build": "rollup -c && cp ./package.json ./dist/package.json && cp ./README.md ./dist/README.md",
     "lint": "eslint src/*"
@@ -12,14 +13,21 @@
   "author": "Iain Shorter <iainshorter@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "@types/jest": "^26.0.23",
-    "@typescript-eslint/eslint-plugin": "^4.22.1",
-    "@typescript-eslint/parser": "^4.22.1",
-    "eslint": "^7.25.0",
-    "jest": "^26.5.0",
-    "rollup": "^2.47.0",
+    "@types/jest": "^26.0.24",
+    "@types/mri": "^1.1.1",
+    "@typescript-eslint/eslint-plugin": "^4.28.4",
+    "@typescript-eslint/parser": "^4.28.4",
+    "eslint": "^7.31.0",
+    "jest": "^27.0.6",
+    "rollup": "^2.53.3",
     "rollup-plugin-typescript2": "^0.30.0",
-    "ts-jest": "^26.5.6",
-    "typescript": "^4.2.4"
+    "ts-jest": "^27.0.4",
+    "typescript": "^4.3.5",
+    "ts-node": "^10.1.0"
+  },
+  "dependencies": {
+    "levenstein.js": "^1.1.2",
+    "mri": "^1.1.6",
+    "ts-runtime-typecheck": "^2.3.0"
   }
 }

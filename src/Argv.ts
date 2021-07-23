@@ -1,0 +1,71 @@
+import type { Argv } from './Argv.type';
+
+import { asDefined, makeNumber, makeString } from 'ts-runtime-typecheck';
+import mri from 'mri';
+
+export function rename_executable (argv: Argv, exe_name: string): Argv {
+	const args = argv.arguments.slice(0);
+	args[0] = exe_name;
+	return {
+		options: new Map(argv.options),
+		arguments: args,
+	};
+}
+
+export function root_executable (exe_name: string): string {
+	return exe_name.split('-')[0];
+} 
+
+export function rename_executable_and_remove_subcommmand (argv: Argv, exe_name: string): Argv {
+	// this is technically removing the executable, and renaming the subcommand to the executable
+	// but the end effect is the same
+	const args = argv.arguments.slice(1);
+	args[0] = exe_name;
+	return {
+		options: new Map(argv.options),
+		arguments: args,
+	};
+}
+
+export function remove_executable (argv: Argv): Argv {
+	return {
+		options: new Map(argv.options),
+		arguments: argv.arguments.slice(1),
+	};
+}
+
+export function parse_argv(args: string[]): Argv {
+	// TODO replace mri with custom implementation
+	const { _, ...options} = mri(args.slice(1));
+	return {
+		arguments: Array.from(_), // wrapper required to make array readonly
+		options: new Map(Object.entries(options).map(([name, value]) => [name, makeString(value)])),
+	};
+}
+
+export function read_boolean_option (argv: Argv, opt_name: string, fallback = false): boolean {
+	const value = asDefined(argv.options.get(opt_name), fallback.toString());
+	switch (value.toLowerCase()) {
+	case 'false':
+	case 'no':
+		return false;
+	case 'true':
+	case 'yes':
+		return true;
+	default:
+		throw new Error(`Expected boolean value for option ${opt_name} but found ${value}`);
+	}
+}
+
+export function read_numerical_option (argv: Argv, opt_name: string, fallback = 0): number {
+	const value = asDefined(argv.options.get(opt_name), fallback.toString());
+	try {
+		return makeNumber(value);
+	} catch {
+		throw new Error(`Expected numerical value for option ${opt_name} but found ${value}`);
+	}
+}
+
+export function read_string_option (argv: Argv, opt_name: string, fallback = ''): string {
+	return argv.options.get(opt_name) ?? fallback;
+}
