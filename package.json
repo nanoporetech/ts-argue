@@ -1,5 +1,6 @@
 {
   "version": "0.1.0",
+  "name": "argumen-ts",
   "main": "cjs/index.js",
   "module": "mjs/index.mjs",
   "types": "mjs/index.d.ts",

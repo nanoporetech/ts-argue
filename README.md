@@ -1,8 +1,8 @@
-# ts-argue (working title)
+# argumen-ts
 
 An opinionated framework for creating modern CLI applications in Node.js, with a simple and composable approach to command definitions.
 
-Whereas most CLI frameworks use the builder pattern for defining the behavior of the application ts-argue defines a pattern for a command object. These commands can then be composed into a tree of sub-commands to define your application. In addition to defining the application behavior this tree of commands auto-generates contextual help text and suggestions.
+Whereas most CLI frameworks use the builder pattern for defining the behavior of the application argumen-ts defines a pattern for a command object. These commands can then be composed into a tree of sub-commands to define your application. In addition to defining the application behavior this tree of commands auto-generates contextual help text and suggestions.
 
 ## Example
 
@@ -43,12 +43,12 @@ As an example lets create a simple CRUD application that stores contacts. We wil
 ```
 
 ```typescript
-import type { Argv, Command } from 'ts-argue';
+import type { Argv, Command } from 'argumen-ts';
 import type { Contact } from './database';
 
 // our actual storage and persistence will be dealt with outside of our UI layer 
 import { contact_database } from './database';
-import { read_string_option, run_command, log, style } from 'ts-argue';
+import { read_string_option, run_command, log, style } from 'argumen-ts';
 
 // first we define each sub-command
 // the create command has a few options, and requires an argument
