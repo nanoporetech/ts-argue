@@ -8,7 +8,7 @@ import { print_did_you_mean } from './print_did_you_mean';
 import { print_help } from './print_help';
 import { print_version } from './print_version';
 import { read_boolean_option, remove_executable, rename_executable, rename_executable_and_remove_subcommmand, root_executable } from './Argv';
-import { ExitCode } from './ExitCode';
+import { EXIT_CODE } from './ExitCode';
 import { log } from './Logger';
 
 export async function run_command_with_options (command: Command, opts: Argv, cfg: Configuration): Promise<number> {
@@ -24,12 +24,12 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
 
 	if (subcommand_name === 'help' || read_boolean_option(opts, 'help')) {
 		print_help(executable, command);
-		return ExitCode.ok;
+		return EXIT_CODE.ok;
 	}
 
 	if (subcommand_name === 'version' || read_boolean_option(opts, 'version')) {
 		print_version(root_executable(executable), cfg);
-		return ExitCode.ok;
+		return EXIT_CODE.ok;
 	}
 
 	// NOTE if the user has not specified a command, and we have a default command, then execute that
@@ -47,7 +47,7 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
 		const child_options = remove_executable(opts);
 		try {
 			const code = await command.action(child_options);
-			return code ?? ExitCode.ok;
+			return code ?? EXIT_CODE.ok;
 		} catch (err) {
       if (err instanceof Error) {
         log.error(err.message);
@@ -56,15 +56,15 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
         log.error(err);
         log.new_line();
       }
-			return ExitCode.error;
+			return EXIT_CODE.error;
 		}
 	}
 
 	if (subcommand_name) {
 		print_did_you_mean(command, executable, subcommand_name);
-		return ExitCode.error;
+		return EXIT_CODE.error;
 	}
 
 	print_help(executable, command);
-	return ExitCode.ok;
+	return EXIT_CODE.ok;
 }

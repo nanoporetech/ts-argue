@@ -27,7 +27,7 @@ module.exports = {
         selector: ['variable'],
         modifiers: ['const', 'global'],
         types: ['boolean', 'string', 'number', 'array'],
-        format: ['UPPER_CASE', 'PascalCase', 'snake_case'],
+        format: ['UPPER_CASE'],
         leadingUnderscore: 'forbid',
         trailingUnderscore: 'forbid',
       },
@@ -35,7 +35,7 @@ module.exports = {
       {
         selector: ['variable'],
         modifiers: ['const', 'global'],
-        format: ['PascalCase', 'snake_case'],
+        format: ['UPPER_CASE', 'snake_case'],
         leadingUnderscore: 'forbid',
         trailingUnderscore: 'forbid',
       },
