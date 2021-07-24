@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "name": "ts-argue",
   "main": "cjs/index.js",
   "module": "mjs/index.mjs",
@@ -10,6 +10,11 @@
     "typecheck": "tsc --noEmit --watch",
     "build": "rollup -c && cp ./package.json ./dist/package.json && cp ./README.md ./dist/README.md",
     "lint": "eslint src/*"
+  },
+  "homepage": "https://github.com/nanoporetech/ts-argue",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nanoporetech/ts-argue.git"
   },
   "author": "Iain Shorter <iainshorter@gmail.com>",
   "license": "MPL-2.0",
