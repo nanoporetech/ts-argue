@@ -5,7 +5,7 @@ import { BACKGROUND_COLORS, ESC, FONT_COLORS, MODIFIERS } from './style.constant
 export function style (pre: string, post: string): StyleTag {
 	const prefix = ESC + pre + 'm';
 	const postfix = ESC + post + 'm';
-	return (template, values) => {
+	return (template, ...values) => {
 		if (typeof template === 'string') {
 			return prefix + template + postfix;
 		}
