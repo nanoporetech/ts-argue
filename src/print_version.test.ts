@@ -1,0 +1,3 @@
+/*
+  test prints version message
+*/

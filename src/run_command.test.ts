@@ -1,0 +1,6 @@
+/*
+stub process.argv and process.exit
+use minimal command that returns an unusual exit code sync
+use minimal command that returns an unusual exit code async
+ensure that process.exit is called with return codes
+*/

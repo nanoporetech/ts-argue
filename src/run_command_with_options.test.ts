@@ -1,0 +1,16 @@
+/*
+test direct execution of subcommand
+test help subcommand
+test help option
+test help of subcommand is preferred over parent
+test version subcommand
+test version option
+test default subcommand execution
+test default subcommand not existing
+test action execution default exit code
+test action execution custom exit code
+test action execution thrown error
+test action execution thrown non errr
+test subcommand spelling error
+test default help execution
+*/
