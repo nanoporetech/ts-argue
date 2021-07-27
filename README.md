@@ -1,5 +1,8 @@
 # ts-argue
 
+![100% coverage](https://img.shields.io/badge/coverage-100%25-success)
+![npm](https://img.shields.io/npm/dm/ts-argue)
+
 An opinionated framework for creating modern CLI applications in Node.js, with a simple and composable approach to command definitions.
 
 Whereas most CLI frameworks use the builder pattern for defining the behavior of the application ts-argue defines a pattern for a command object. These commands can then be composed into a tree of sub-commands to define your application. In addition to defining the application behavior this tree of commands auto-generates contextual help text and suggestions.
