@@ -50,7 +50,7 @@ export function print_help(executable: string, command: Command): void {
 	log.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options] [command]`}`);
 	log.new_line();
 
-	if (command.examples) {
+	if (command.examples && command.examples.length > 0) {
 		start_group('examples');
 		for (const example of command.examples) {
 			log.print_line(style.dim`${exe_name} ${example}`);
@@ -62,7 +62,7 @@ export function print_help(executable: string, command: Command): void {
 	// NOTE we want to alphabetically sort and format the subcommands into something nice
 	log.print_lines(
 		Array.from(subcommands)
-			.sort((a, b) => a[0] > b[0] ? 1 : a[0] < b[0] ? -1 : 0)
+			.sort((a, b) => a[0] > b[0] ? 1 : -1)
 			.map(([name, description]) => `${name.padEnd(longest_name)} ${style.dim(description)}`)
 	);
 	end_group();
@@ -71,7 +71,7 @@ export function print_help(executable: string, command: Command): void {
 	// NOTE we want to alphabetically sort and format the subcommands into something nice
 	log.print_lines(
 		Array.from(options)
-			.sort((a, b) => a[0] > b[0] ? 1 : a[0] < b[0] ? -1 : 0)
+			.sort((a, b) => a[0] > b[0] ? 1 : -1)
 			.map(([name, description]) => `${`--${name}`.padEnd(longest_name)} ${style.dim(description)}`)
 	);
 	end_group();
