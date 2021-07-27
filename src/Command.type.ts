@@ -7,5 +7,5 @@ export interface Command {
   options?: Dictionary<string>;
   default?: string;
   examples?: string[];
-  action?: (_opts: Argv) => Promise<void | number> | number | void;
+  action?: (opts: Argv) => Promise<void | number> | number | void;
 }
