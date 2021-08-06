@@ -2,7 +2,7 @@ import * as style from './style';
 import { prompt } from 'enquirer';
 
 const INDENT_SIZE = 2;
-export class Logger {
+export class Terminal {
   indent = 0;
   readonly interactive = process.stdin.isTTY;
 
@@ -174,4 +174,4 @@ export class Logger {
   }
 }
 
-export const log = new Logger;
+export const terminal = new Terminal;

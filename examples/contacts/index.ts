@@ -3,7 +3,7 @@ import type { Contact } from './database';
 
 // our actual storage and persistence will be dealt with outside of our UI layer 
 import { contact_database } from './database';
-import { read_string_option, run_command, log, style } from '../../src';
+import { read_string_option, run_command, terminal, style } from '../../src';
 
 // first we define each sub-command
 // the create command has a few options, and requires an argument
@@ -18,7 +18,7 @@ const create_command: Command = {
     const name = get_name_argument(opts);
     const { mobile, email } = read_standard_options(opts);
     await contact_database.insert({ name, mobile, email });
-    log.print_line(`Created new entry for ${style.bold(name)}`);
+    terminal.print_line(`Created new entry for ${style.bold(name)}`);
   }
 };
 
@@ -38,19 +38,19 @@ const list_command: Command = {
   async action() {
     const entries = await contact_database.entries();
     if (entries.length === 0) {
-      log.print_line('No contacts found in database.');
-      log.new_line();
-      log.print_line('To learn how to create a new contact try:');
-      log.increase_indent();
-      log.print_line(style.bold('contacts create help'));
-      log.new_line();
+      terminal.print_line('No contacts found in database.');
+      terminal.new_line();
+      terminal.print_line('To learn how to create a new contact try:');
+      terminal.increase_indent();
+      terminal.print_line(style.bold('contacts create help'));
+      terminal.new_line();
 
       return;
     }
-    log.print_line(style.bold`CONTACTS:`);
-    log.increase_indent();
+    terminal.print_line(style.bold`CONTACTS:`);
+    terminal.increase_indent();
     for (const entry of entries) {
-      log.print_line(entry.name);
+      terminal.print_line(entry.name);
     }
   }
 };
@@ -81,7 +81,7 @@ const update_command: Command = {
 
     await contact_database.insert(new_entry);
 
-    log.print_line(`Updated contact details for ${style.bold(new_entry.name)}`);
+    terminal.print_line(`Updated contact details for ${style.bold(new_entry.name)}`);
     print_contact(new_entry);
   }
 };
@@ -93,7 +93,7 @@ const delete_command: Command = {
     const name = get_name_argument(opts);
     await get_existing_contact(name);
     await contact_database.delete(name);
-    log.print_line(`Deleted contact ${style.bold(name)}`);
+    terminal.print_line(`Deleted contact ${style.bold(name)}`);
   }
 };
 
@@ -122,9 +122,9 @@ const read_standard_options = (opts: Argv) => {
 };
 
 const print_contact = ({ name, email, mobile }: Contact) => {
-  log.print_line(`${style.dim('Name:')} ${name}`);
-  log.print_line(`${style.dim('Mobile:')} ${mobile ?? ''}`);
-  log.print_line(`${style.dim('Email:')} ${email ?? ''}`);
+  terminal.print_line(`${style.dim('Name:')} ${name}`);
+  terminal.print_line(`${style.dim('Mobile:')} ${mobile ?? ''}`);
+  terminal.print_line(`${style.dim('Email:')} ${email ?? ''}`);
 };
 
 // next we define our "root" command

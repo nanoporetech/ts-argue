@@ -1,5 +1,5 @@
 import { assertDefined } from 'ts-runtime-typecheck';
-import { log } from './Terminal';
+import { terminal } from './Terminal';
 import * as style from './style';
 import enquirer from 'enquirer';
 
@@ -15,7 +15,7 @@ beforeEach(() => {
   process_exit = jest.spyOn(process, 'exit').mockImplementation(() => { throw exit; });
   std_output = jest.spyOn(process.stdout, 'write');
   log_output = jest.spyOn(console, 'log');
-  log.indent = 0;
+  terminal.indent = 0;
 });
 
 afterEach(() => {
@@ -31,7 +31,7 @@ afterEach(() => {
 
 it('prints to process.stdout', () => {
   assertDefined(std_output);
-  log.print('hello world');
+  terminal.print('hello world');
   expect(std_output.mock.calls).toEqual([
     ['hello world']
   ]);
@@ -39,29 +39,29 @@ it('prints to process.stdout', () => {
 it('increase_indent/decrease_indent modifies indent level', () => {
   assertDefined(std_output);
 
-  expect(log.indent).toEqual(0);
+  expect(terminal.indent).toEqual(0);
 
-  log.increase_indent();
+  terminal.increase_indent();
 
-  expect(log.indent).toEqual(2);
+  expect(terminal.indent).toEqual(2);
 
-  log.start_line();
-  log.increase_indent();
+  terminal.start_line();
+  terminal.increase_indent();
 
-  expect(log.indent).toEqual(4);
+  expect(terminal.indent).toEqual(4);
 
-  log.start_line();
-  log.decrease_indent();
+  terminal.start_line();
+  terminal.decrease_indent();
 
-  expect(log.indent).toEqual(2);
+  expect(terminal.indent).toEqual(2);
 
-  log.decrease_indent();
+  terminal.decrease_indent();
 
-  expect(log.indent).toEqual(0);
+  expect(terminal.indent).toEqual(0);
 
-  log.decrease_indent();
+  terminal.decrease_indent();
   
-  expect(log.indent).toEqual(0);
+  expect(terminal.indent).toEqual(0);
   expect(std_output.mock.calls).toEqual([
     ['  '],
     ['    ']
@@ -70,9 +70,9 @@ it('increase_indent/decrease_indent modifies indent level', () => {
 it('print_line includes indent and newline', () => {
   assertDefined(std_output);
 
-  log.increase_indent();
-  log.print_line('hello world');
-  log.decrease_indent();
+  terminal.increase_indent();
+  terminal.print_line('hello world');
+  terminal.decrease_indent();
 
   expect(std_output.mock.calls).toEqual([
     ['  hello world\n'],
@@ -81,9 +81,9 @@ it('print_line includes indent and newline', () => {
 it('print_lines includes indent and newline for each element', () => {
   assertDefined(std_output);
 
-  log.increase_indent();
-  log.print_lines(['hello','world']);
-  log.decrease_indent();
+  terminal.increase_indent();
+  terminal.print_lines(['hello','world']);
+  terminal.decrease_indent();
 
   expect(std_output.mock.calls).toEqual([
     ['  hello\n'],
@@ -93,7 +93,7 @@ it('print_lines includes indent and newline for each element', () => {
 it('new_line prints a newline character', () => {
   assertDefined(std_output);
 
-  log.new_line();
+  terminal.new_line();
 
   expect(std_output.mock.calls).toEqual([
     ['\n'],
@@ -103,7 +103,7 @@ it('new_line prints a newline character', () => {
 it('info calls console.log with custom prefix', () => {
   assertDefined(log_output);
 
-  log.info('hello world');
+  terminal.info('hello world');
 
   expect(log_output.mock.calls).toEqual([
     ['info  -', 'hello world'],
@@ -113,7 +113,7 @@ it('info calls console.log with custom prefix', () => {
 it('debug calls console.log with custom prefix', () => {
   assertDefined(log_output);
 
-  log.debug('hello world');
+  terminal.debug('hello world');
 
   expect(log_output.mock.calls).toEqual([
     ['\u001b[34mdebug -\u001b[39m', 'hello world'],
@@ -123,7 +123,7 @@ it('debug calls console.log with custom prefix', () => {
 it('warn calls console.log with custom prefix', () => {
   assertDefined(log_output);
 
-  log.warn('hello world');
+  terminal.warn('hello world');
 
   expect(log_output.mock.calls).toEqual([
     ['\u001b[33mwarn  -\u001b[39m', 'hello world'],
@@ -133,7 +133,7 @@ it('warn calls console.log with custom prefix', () => {
 it('error calls console.log with custom prefix', () => {
   assertDefined(log_output);
 
-  log.error('hello world');
+  terminal.error('hello world');
 
   expect(log_output.mock.calls).toEqual([
     ['\u001b[31merror -\u001b[39m', 'hello world'],
@@ -145,14 +145,14 @@ describe('print_table', () => {
     const headers = [
       'name', 'value', 'description'
     ];
-    log.increase_indent();
-    log.print_table([
+    terminal.increase_indent();
+    terminal.print_table([
       ['alpha', '42', 'unknown'],
       ['beta', '1000', style.font_color.red`like a cheater, but worse`],
       [style.bold`charlie`, '0', 'pub landlord'],
       [style.background_color.magenta`catch the edge case where the length is 1 as we cannot print text + ellipsis`, '', 'print_lines includes indent and newline for each element']
     ], headers);
-    log.decrease_indent();
+    terminal.decrease_indent();
 
     assertDefined(std_output);
 
@@ -169,14 +169,14 @@ describe('print_table', () => {
   });
 
   it('prints a large table without headers', () => {
-    log.increase_indent();
-    log.print_table([
+    terminal.increase_indent();
+    terminal.print_table([
       ['alpha', '42', 'unknown'],
       ['beta', '1000', style.font_color.red`like a cheater, but worse`],
       [style.bold`charlie`, '0', 'pub landlord'],
       [style.background_color.magenta`catch the edge case where the length is 1 as we cannot print text + ellipsis`, '', 'print_lines includes indent and newline for each element']
     ]);
-    log.decrease_indent();
+    terminal.decrease_indent();
 
     assertDefined(std_output);
 
@@ -191,7 +191,7 @@ describe('print_table', () => {
   });
 
   it('prints a small table without headers', () => {
-    log.print_table([
+    terminal.print_table([
         ['alpha', '42', 'unknown'],
     ]);
 
@@ -205,7 +205,7 @@ describe('print_table', () => {
   });
 
   it('prints a small table without all cells/headers', () => {
-    log.print_table([
+    terminal.print_table([
       ['beta', ''],
       ['alpha', '42', 'unknown'],
     ], [ 'name' ]);
@@ -226,24 +226,24 @@ describe('print_table', () => {
 it('confirm calls enquirer', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockResolvedValue({ result: true });
-  expect(await log.confirm('example', true)).toEqual(true);
+  expect(await terminal.confirm('example', true)).toEqual(true);
 });
 
 it('input calls enquirer', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockResolvedValue({ result: 'yes' });
-  expect(await log.input('example', 'yes')).toEqual('yes');
+  expect(await terminal.input('example', 'yes')).toEqual('yes');
 });
 
 it('cancelled confirm prompt call process.exit', async () => {
-  await expect(() => log.confirm('example')).rejects.toEqual(exit);
+  await expect(() => terminal.confirm('example')).rejects.toEqual(exit);
   expect(process_exit?.mock.calls).toEqual([
     [1]
   ]);
 });
 
 it('cancelled input prompt call process.exit', async () => {
-  await expect(() => log.input('example')).rejects.toEqual(exit);
+  await expect(() => terminal.input('example')).rejects.toEqual(exit);
   expect(process_exit?.mock.calls).toEqual([
     [1]
   ]);
