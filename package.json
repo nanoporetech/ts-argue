@@ -1,5 +1,5 @@
 {
-  "version": "0.1.2",
+  "version": "0.2.1",
   "name": "ts-argue",
   "main": "cjs/index.js",
   "module": "mjs/index.mjs",
@@ -32,6 +32,7 @@
     "ts-node": "^10.1.0"
   },
   "dependencies": {
+    "enquirer": "^2.3.6",
     "levenstein.js": "^1.1.2",
     "mri": "^1.1.6",
     "ts-runtime-typecheck": "^2.3.0"

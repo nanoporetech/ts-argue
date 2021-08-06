@@ -1,6 +1,6 @@
 import type { Argv } from './Argv.type';
 
-import { asDefined, makeNumber, makeString } from 'ts-runtime-typecheck';
+import { isUndefined, makeNumber, makeString } from 'ts-runtime-typecheck';
 import mri from 'mri';
 
 export function rename_executable (argv: Argv, exe_name: string): Argv {
@@ -47,8 +47,13 @@ export function parse_argv(args: string[]): Argv {
 	};
 }
 
-export function read_boolean_option (argv: Argv, opt_name: string, fallback = false): boolean {
-	const value = asDefined(argv.options.get(opt_name), fallback.toString());
+export function read_opt_boolean_option (argv: Argv, opt_name: string): boolean | null {
+  const value = argv.options.get(opt_name);
+
+  if (isUndefined(value)) {
+    return null;
+  }
+
 	switch (value.toLowerCase()) {
 	case 'false':
 	case 'no':
@@ -61,8 +66,23 @@ export function read_boolean_option (argv: Argv, opt_name: string, fallback = fa
 	}
 }
 
-export function read_numerical_option (argv: Argv, opt_name: string, fallback = 0): number {
-	const value = asDefined(argv.options.get(opt_name), fallback.toString());
+export function read_opt_string_option (argv: Argv, opt_name: string): string | null {
+  const value = argv.options.get(opt_name);
+
+  if (isUndefined(value)) {
+    return null;
+  }
+
+	return value;
+}
+
+export function read_opt_numerical_option (argv: Argv, opt_name: string): number | null {
+  const value = argv.options.get(opt_name);
+
+  if (isUndefined(value)) {
+    return null;
+  }
+
 	try {
 		return makeNumber(value);
 	} catch {
@@ -70,6 +90,14 @@ export function read_numerical_option (argv: Argv, opt_name: string, fallback = 
 	}
 }
 
+export function read_boolean_option (argv: Argv, opt_name: string, fallback = false): boolean {
+	return read_opt_boolean_option(argv, opt_name) ?? fallback;
+}
+
+export function read_numerical_option (argv: Argv, opt_name: string, fallback = 0): number {
+  return read_opt_numerical_option(argv, opt_name) ?? fallback;
+}
+
 export function read_string_option (argv: Argv, opt_name: string, fallback = ''): string {
-	return argv.options.get(opt_name) ?? fallback;
+  return read_opt_string_option(argv, opt_name) ?? fallback;
 }

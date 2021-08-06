@@ -1,4 +1,6 @@
 import * as style from './style';
+import { remove_styles, truncate_styled_string } from './style';
+import { ESC } from './style.constants';
 
 it('style produces a StyleTag function for a given prefix/suffix', () => {
   expect(style.style('1', '0')('hello world')).toEqual('\u001b[1mhello world\u001b[0m');
@@ -59,4 +61,63 @@ it('background_color', () => {
   expect(style.background_color.bright_magenta('example')).toEqual('\u001b[105mexample\u001b[49m');
   expect(style.background_color.bright_cyan('example')).toEqual('\u001b[106mexample\u001b[49m');
   expect(style.background_color.bright_white('example')).toEqual('\u001b[107mexample\u001b[49m');
+});
+it('remove_styles', () => {
+  expect(remove_styles(style.bold`Hello world!`)).toEqual('Hello world!');
+});
+describe('truncate_styled_string', () => {
+  it('doesn\'t truncate string with exact length', () => {
+    expect(truncate_styled_string(style.bold`Hello world!`, 12)).toEqual({
+      text: style.bold`Hello world!`,
+      length: 12,
+    });
+  });
+  it('truncates to the correct length', () => {
+    expect(truncate_styled_string(style.bold`Hello world!`, 5)).toEqual({
+      text: style.bold`Hell…`,
+      length: 5
+    });
+  });
+  it('correctly handles nested styles', () => {
+    expect(truncate_styled_string(style.bold`Hello ${style.dim`new`} world`, 14)).toEqual({
+       // NOTE tagged literals technically repush the start tag after each nest,
+       // but only close at the end. Hence are not symmetrical and cause the truncation algorithm
+       // to emit n + 1 closes at the end ( n being the number of values in the literal ) 
+      text: style.bold`Hello ${style.dim`new`} wor…` + ESC + '22m',
+      length: 14,
+    });
+  });
+  it('correctly handles partial styles', () => {
+    expect(truncate_styled_string(style.bold`Hello ${style.dim`new`} world`, 8)).toEqual({
+      text: style.bold(`Hello ${style.dim`n…`}`), // NOTE output of function here is subtly different to tagged template literal
+      length: 8,
+    });
+  });
+  it('returns an empty string for an empty string', () => {
+    expect(truncate_styled_string('', 10)).toEqual({
+      text: '',
+      length: 0,
+    });
+  });
+  it('returns an empty string if limit is 0', () => {
+    expect(truncate_styled_string('Hello', 0)).toEqual({
+      text: '',
+      length: 0,
+    });
+  });
+  it('returns just an ellipsis if limit is 1', () => {
+    expect(truncate_styled_string('Hello', 1)).toEqual({
+      text: '…',
+      length: 1,
+    });
+  });
+  it('...but not if source is 1 char', () => {
+    expect(truncate_styled_string('H', 1)).toEqual({
+      text: 'H',
+      length: 1,
+    });
+  });
+  it('throws for unknown style codes', () => {
+    expect(() => truncate_styled_string(ESC + '999' + 'm', 10)).toThrow('Unknown style code discovered 999');
+  });
 });

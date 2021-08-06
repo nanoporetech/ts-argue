@@ -9,7 +9,7 @@ import { print_help } from './print_help';
 import { print_version } from './print_version';
 import { read_boolean_option, remove_executable, rename_executable, rename_executable_and_remove_subcommmand, root_executable } from './Argv';
 import { EXIT_CODE } from './exit_code.constants';
-import { log } from './Logger';
+import { terminal } from './Terminal';
 
 export async function run_command_with_options (command: Command, opts: Argv, cfg: Configuration): Promise<number> {
 	const executable = basename(opts.arguments[0]);
@@ -50,11 +50,11 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
 			return code ?? EXIT_CODE.ok;
 		} catch (err) {
       if (err instanceof Error) {
-        log.error(err.message);
-        log.new_line();
+        terminal.error(err.message);
+        terminal.new_line();
       } else {
-        log.error(err);
-        log.new_line();
+        terminal.error(err);
+        terminal.new_line();
       }
 			return EXIT_CODE.error;
 		}

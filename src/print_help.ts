@@ -1,6 +1,6 @@
 import { nice_executable_name } from './Argv';
 import type { Command } from './Command.type';
-import { log } from './Logger';
+import { terminal } from './Terminal';
 
 import * as style from './style';
 
@@ -34,33 +34,33 @@ export function print_help(executable: string, command: Command): void {
 	}
 
 	if (command.description) {
-		log.print_line(command.description);
-		log.new_line();
+		terminal.print_line(command.description);
+		terminal.new_line();
 	}
 
 	const start_group = (label: string) => {
-		log.print_line(style.bold(label.toUpperCase() + ':'));
-		log.increase_indent();
+		terminal.print_line(style.bold(label.toUpperCase() + ':'));
+		terminal.increase_indent();
 	};
 	const end_group = () => {
-		log.decrease_indent();
-		log.new_line();
+		terminal.decrease_indent();
+		terminal.new_line();
 	};
 
-	log.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options] [command]`}`);
-	log.new_line();
+	terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options] [command]`}`);
+	terminal.new_line();
 
 	if (command.examples && command.examples.length > 0) {
 		start_group('examples');
 		for (const example of command.examples) {
-			log.print_line(style.dim`${exe_name} ${example}`);
+			terminal.print_line(style.dim`${exe_name} ${example}`);
 		}
 		end_group();
 	}
 
 	start_group('commands');
 	// NOTE we want to alphabetically sort and format the subcommands into something nice
-	log.print_lines(
+	terminal.print_lines(
 		Array.from(subcommands)
 			.sort((a, b) => a[0] > b[0] ? 1 : -1)
 			.map(([name, description]) => `${name.padEnd(longest_name)} ${style.dim(description)}`)
@@ -69,7 +69,7 @@ export function print_help(executable: string, command: Command): void {
 
 	start_group('options');
 	// NOTE we want to alphabetically sort and format the subcommands into something nice
-	log.print_lines(
+	terminal.print_lines(
 		Array.from(options)
 			.sort((a, b) => a[0] > b[0] ? 1 : -1)
 			.map(([name, description]) => `${`--${name}`.padEnd(longest_name)} ${style.dim(description)}`)
