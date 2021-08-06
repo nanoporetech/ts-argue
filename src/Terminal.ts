@@ -1,5 +1,6 @@
 import * as style from './style';
 import { prompt } from 'enquirer';
+import { EXIT_CODE } from './exit_code.constants';
 
 const INDENT_SIZE = 2;
 export class Terminal {
@@ -28,7 +29,7 @@ export class Terminal {
       });
       return result;
     } catch {
-      process.exit(1);
+      process.exit(EXIT_CODE.error);
     }
   }
 

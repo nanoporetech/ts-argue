@@ -38,17 +38,20 @@ const list_command: Command = {
   async action() {
     const entries = await contact_database.entries();
     if (entries.length === 0) {
-      terminal.print_line('No contacts found in database.');
-      terminal.new_line();
-      terminal.print_line('To learn how to create a new contact try:');
-      terminal.increase_indent();
-      terminal.print_line(style.bold('contacts create help'));
-      terminal.new_line();
+      terminal
+        .print_line('No contacts found in database.')
+        .new_line()
+        .print_line('To learn how to create a new contact try:')
+        .increase_indent()
+        .print_line(style.bold('contacts create help'))
+        .new_line();
 
       return;
     }
-    terminal.print_line(style.bold`CONTACTS:`);
-    terminal.increase_indent();
+    terminal
+      .print_line(style.bold`CONTACTS:`)
+      .increase_indent();
+
     for (const entry of entries) {
       terminal.print_line(entry.name);
     }
@@ -115,16 +118,18 @@ const get_existing_contact = async (name: string) => {
 
 const read_standard_options = (opts: Argv) => {
   return {
-    name: read_string_option(opts, 'name'),
-    mobile: read_string_option(opts, 'mobile'),
-    email: read_string_option(opts, 'email'),
+    name: read_string_option(opts, 'name', ''),
+    mobile: read_string_option(opts, 'mobile', ''),
+    email: read_string_option(opts, 'email', ''),
   };
 };
 
 const print_contact = ({ name, email, mobile }: Contact) => {
-  terminal.print_line(`${style.dim('Name:')} ${name}`);
-  terminal.print_line(`${style.dim('Mobile:')} ${mobile ?? ''}`);
-  terminal.print_line(`${style.dim('Email:')} ${email ?? ''}`);
+  terminal.print_lines([
+    `${style.dim('Name:')} ${name}`,
+    `${style.dim('Mobile:')} ${mobile ?? ''}`,
+    `${style.dim('Email:')} ${email ?? ''}`
+  ]);
 };
 
 // next we define our "root" command
