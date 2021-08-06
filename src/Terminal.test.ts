@@ -1,5 +1,5 @@
 import { assertDefined } from 'ts-runtime-typecheck';
-import { log } from './Logger';
+import { log } from './Terminal';
 import * as style from './style';
 import enquirer from 'enquirer';
 

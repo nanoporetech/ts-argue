@@ -1,6 +1,6 @@
 import { nice_executable_name } from './Argv';
 import type { Command } from './Command.type';
-import { log } from './Logger';
+import { log } from './Terminal';
 
 import * as style from './style';
 
