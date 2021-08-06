@@ -32,27 +32,29 @@ export class Terminal {
     }
   }
 
-  print(str: string): void {
+  print(str: string): this {
     process.stdout.write(str);
+    return this;
   }
 
-  start_line(): void {
-    this.print(' '.repeat(this.indent));
+  start_line(): this {
+    return this.print(' '.repeat(this.indent));
   }
 
-  print_line(line: string): void {
-    this.print(' '.repeat(this.indent) + line + '\n');
+  print_line(line: string): this {
+    return this.print(' '.repeat(this.indent) + line + '\n');
   }
 
-  print_lines(lines: string[]): void {
+  print_lines(lines: string[]): this {
     for (const line of lines) {
       this.print_line(line);
     }
+    return this;
   }
 
   // TODO allow column size options ( similar to flex: 1 etc )
   // TODO resolve emoji issues...
-  print_table(rows: string[][], header?: string[]): void {
+  print_table(rows: string[][], header?: string[]): this {
     // column_widths stores the maximum width of the cells in that column (normalized)
     const column_widths: number[] = [];
 
@@ -143,18 +145,22 @@ export class Terminal {
 
       this.print_line(column_widths.map(width => '━'.repeat(width)).join('━┷━'));
     }
+
+    return this;
   }
 
-  new_line(): void {
-    this.print('\n');
+  new_line(): this {
+    return this.print('\n');
   }
 
-  increase_indent(): void {
+  increase_indent(): this {
     this.indent += INDENT_SIZE;
+    return this;
   }
 
-  decrease_indent(): void {
+  decrease_indent(): this {
     this.indent = Math.max(0, this.indent - INDENT_SIZE);
+    return this;
   }
 
   info(...values: unknown[]): void {
