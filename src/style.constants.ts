@@ -39,6 +39,7 @@ export const FONT_COLORS = {
 	bright_cyan: '96',
 	bright_white: '97',
 };
+
 export const BACKGROUND_COLORS = {
 	black: '40',
 	red: '41',
@@ -58,3 +59,56 @@ export const BACKGROUND_COLORS = {
 	bright_cyan: '106',
 	bright_white: '107',
 };
+
+export const PUSH_CODES = new Map([
+  [MODIFIERS.low_intensity, MODIFIERS.normal_intensity],
+  [MODIFIERS.high_intensity, MODIFIERS.normal_intensity],
+  [MODIFIERS.blink, MODIFIERS.no_blink],
+  [MODIFIERS.reverse, MODIFIERS.no_reverse],
+  [MODIFIERS.strikethrough, MODIFIERS.no_strikethrough],
+  [MODIFIERS.underline, MODIFIERS.no_underline],
+
+  [FONT_COLORS.black, FONT_COLORS.default],
+	[FONT_COLORS.red, FONT_COLORS.default],
+	[FONT_COLORS.green, FONT_COLORS.default],
+	[FONT_COLORS.yellow, FONT_COLORS.default],
+	[FONT_COLORS.blue, FONT_COLORS.default],
+	[FONT_COLORS.magenta, FONT_COLORS.default],
+	[FONT_COLORS.cyan, FONT_COLORS.default],
+	[FONT_COLORS.white, FONT_COLORS.default],
+	[FONT_COLORS.bright_black, FONT_COLORS.default],
+	[FONT_COLORS.bright_red, FONT_COLORS.default],
+	[FONT_COLORS.bright_green, FONT_COLORS.default],
+	[FONT_COLORS.bright_yellow, FONT_COLORS.default],
+	[FONT_COLORS.bright_blue, FONT_COLORS.default],
+	[FONT_COLORS.bright_magenta, FONT_COLORS.default],
+	[FONT_COLORS.bright_cyan, FONT_COLORS.default],
+	[FONT_COLORS.bright_white, FONT_COLORS.default],
+
+  [BACKGROUND_COLORS.black, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.red, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.green, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.yellow, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.blue, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.magenta, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.cyan, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.white, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.bright_black, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.bright_red, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.bright_green, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.bright_yellow, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.bright_blue, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.bright_magenta, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.bright_cyan, BACKGROUND_COLORS.default],
+	[BACKGROUND_COLORS.bright_white, BACKGROUND_COLORS.default],
+]);
+
+export const POP_CODES = new Set([
+  MODIFIERS.normal_intensity,
+  MODIFIERS.no_blink,
+  MODIFIERS.no_reverse,
+  MODIFIERS.no_strikethrough,
+  MODIFIERS.no_underline,
+  FONT_COLORS.default,
+  BACKGROUND_COLORS.default,
+]);
