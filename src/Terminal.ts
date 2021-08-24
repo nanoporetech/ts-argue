@@ -165,6 +165,7 @@ export class Terminal {
   }
 
   info(...values: unknown[]): void {
+    // NOTE there is an extra space here, so that info/error/warn/debug align
     console.log('info  -', ...values);
   }
 
@@ -173,6 +174,7 @@ export class Terminal {
   }
 
   warn(...values: unknown[]): void {
+    // NOTE there is an extra space here, so that info/error/warn/debug align
     console.log(style.font_color.yellow`warn  -`, ...values);
   }
 

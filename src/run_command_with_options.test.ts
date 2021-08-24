@@ -35,14 +35,12 @@ it('execute subcommand', async () => {
 });
 it('execute help subcommand', async () => {
   const result = await run_command_with_options({}, parse_argv(['example', 'help']), cfg);
-  // eslint-disable-next-line no-control-regex
-  expect(std_output?.mock.calls[0][0]).toMatch(/^\u001b\[1mUSAGE:\u001b\[22m example/u);
+  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`);
   expect(result).toEqual(0);
 });
 it('execute help option', async () => {
   const result = await run_command_with_options({}, parse_argv(['example', '--help']), cfg);
-  // eslint-disable-next-line no-control-regex
-  expect(std_output?.mock.calls[0][0]).toMatch(/^\u001b\[1mUSAGE:\u001b\[22m example/u);
+  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`);
   expect(result).toEqual(0);
 });
 it('help of subcommand preferred', async () => {
@@ -51,8 +49,7 @@ it('help of subcommand preferred', async () => {
       sub: {}
     }
   }, parse_argv(['example', 'sub', 'help']), cfg);
-  // eslint-disable-next-line no-control-regex
-  expect(std_output?.mock.calls[0][0]).toMatch(/^\u001b\[1mUSAGE:\u001b\[22m example sub/u);
+  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example sub ${style.dim`[options] [command]`}\n`);
   expect(result).toEqual(0);
 });
 it('execute version subcommand', async () => {
@@ -141,7 +138,6 @@ it('handles a misspelt subcommand', async () => {
 });
 it('default help execution', async () => {
   const result = await run_command_with_options({}, parse_argv(['example']), cfg);
-  // eslint-disable-next-line no-control-regex
-  expect(std_output?.mock.calls[0][0]).toMatch(/^\u001b\[1mUSAGE:\u001b\[22m example/u);
+  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`);
   expect(result).toEqual(0);
 });

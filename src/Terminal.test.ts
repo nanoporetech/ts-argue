@@ -106,6 +106,7 @@ it('info calls console.log with custom prefix', () => {
   terminal.info('hello world');
 
   expect(log_output.mock.calls).toEqual([
+    // NOTE there is an extra space here, so that info/error/warn/debug align
     ['info  -', 'hello world'],
   ]);
 });
@@ -116,7 +117,7 @@ it('debug calls console.log with custom prefix', () => {
   terminal.debug('hello world');
 
   expect(log_output.mock.calls).toEqual([
-    ['\u001b[34mdebug -\u001b[39m', 'hello world'],
+    [style.font_color.blue`debug -`, 'hello world'],
   ]);
 });
 
@@ -126,7 +127,8 @@ it('warn calls console.log with custom prefix', () => {
   terminal.warn('hello world');
 
   expect(log_output.mock.calls).toEqual([
-    ['\u001b[33mwarn  -\u001b[39m', 'hello world'],
+    // NOTE there is an extra space here, so that info/error/warn/debug align
+    [style.font_color.yellow`warn  -`, 'hello world'],
   ]);
 });
 
@@ -136,7 +138,7 @@ it('error calls console.log with custom prefix', () => {
   terminal.error('hello world');
 
   expect(log_output.mock.calls).toEqual([
-    ['\u001b[31merror -\u001b[39m', 'hello world'],
+    [style.font_color.red`error -`, 'hello world'],
   ]);
 });
 
