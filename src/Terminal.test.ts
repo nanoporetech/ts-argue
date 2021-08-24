@@ -194,7 +194,7 @@ describe('print_table', () => {
 
   it('prints a small table without headers', () => {
     terminal.print_table([
-        ['alpha', '42', 'unknown'],
+      ['alpha', '42', 'unknown'],
     ]);
 
     assertDefined(std_output);

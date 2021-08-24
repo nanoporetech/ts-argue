@@ -4,16 +4,16 @@ import { isUndefined, makeNumber, makeString } from 'ts-runtime-typecheck';
 import mri from 'mri';
 
 export function rename_executable (argv: Argv, exe_name: string): Argv {
-	const args = argv.arguments.slice(0);
-	args[0] = exe_name;
-	return {
-		options: new Map(argv.options),
-		arguments: args,
-	};
+  const args = argv.arguments.slice(0);
+  args[0] = exe_name;
+  return {
+    options: new Map(argv.options),
+    arguments: args,
+  };
 }
 
 export function root_executable (exe_name: string): string {
-	return exe_name.split('-')[0];
+  return exe_name.split('-')[0];
 } 
 
 export function nice_executable_name (exe_name: string): string {
@@ -21,30 +21,30 @@ export function nice_executable_name (exe_name: string): string {
 }
 
 export function rename_executable_and_remove_subcommmand (argv: Argv, exe_name: string): Argv {
-	// this is technically removing the executable, and renaming the subcommand to the executable
-	// but the end effect is the same
-	const args = argv.arguments.slice(1);
-	args[0] = exe_name;
-	return {
-		options: new Map(argv.options),
-		arguments: args,
-	};
+  // this is technically removing the executable, and renaming the subcommand to the executable
+  // but the end effect is the same
+  const args = argv.arguments.slice(1);
+  args[0] = exe_name;
+  return {
+    options: new Map(argv.options),
+    arguments: args,
+  };
 }
 
 export function remove_executable (argv: Argv): Argv {
-	return {
-		options: new Map(argv.options),
-		arguments: argv.arguments.slice(1),
-	};
+  return {
+    options: new Map(argv.options),
+    arguments: argv.arguments.slice(1),
+  };
 }
 
 export function parse_argv(args: string[]): Argv {
-	// TODO replace mri with custom implementation
-	const { _, ...options} = mri(args);
-	return {
-		arguments: Array.from(_), // wrapper required to make array readonly
-		options: new Map(Object.entries(options).map(([name, value]) => [name, makeString(value)])),
-	};
+  // TODO replace mri with custom implementation
+  const { _, ...options} = mri(args);
+  return {
+    arguments: Array.from(_), // wrapper required to make array readonly
+    options: new Map(Object.entries(options).map(([name, value]) => [name, makeString(value)])),
+  };
 }
 
 export function read_opt_boolean_option (argv: Argv, opt_name: string): boolean | null {
@@ -54,16 +54,16 @@ export function read_opt_boolean_option (argv: Argv, opt_name: string): boolean 
     return null;
   }
 
-	switch (value.toLowerCase()) {
-	case 'false':
-	case 'no':
-		return false;
-	case 'true':
-	case 'yes':
-		return true;
-	default:
-		throw new Error(`Expected boolean value for option ${opt_name} but found ${value}`);
-	}
+  switch (value.toLowerCase()) {
+    case 'false':
+    case 'no':
+      return false;
+    case 'true':
+    case 'yes':
+      return true;
+    default:
+      throw new Error(`Expected boolean value for option ${opt_name} but found ${value}`);
+  }
 }
 
 export function read_opt_string_option (argv: Argv, opt_name: string): string | null {
@@ -73,7 +73,7 @@ export function read_opt_string_option (argv: Argv, opt_name: string): string | 
     return null;
   }
 
-	return value;
+  return value;
 }
 
 export function read_opt_numerical_option (argv: Argv, opt_name: string): number | null {
@@ -83,15 +83,15 @@ export function read_opt_numerical_option (argv: Argv, opt_name: string): number
     return null;
   }
 
-	try {
-		return makeNumber(value);
-	} catch {
-		throw new Error(`Expected numerical value for option ${opt_name} but found ${value}`);
-	}
+  try {
+    return makeNumber(value);
+  } catch {
+    throw new Error(`Expected numerical value for option ${opt_name} but found ${value}`);
+  }
 }
 
 export function read_boolean_option (argv: Argv, opt_name: string, fallback = false): boolean {
-	return read_opt_boolean_option(argv, opt_name) ?? fallback;
+  return read_opt_boolean_option(argv, opt_name) ?? fallback;
 }
 
 export function read_numerical_option (argv: Argv, opt_name: string, fallback = 0): number {

@@ -69,6 +69,7 @@ module.exports = {
         trailingUnderscore: 'forbid',
       },
     ],
+    '@typescript-eslint/indent': ["error", 2],
     'linebreak-style': [
       'error',
       'unix'

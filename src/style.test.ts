@@ -80,9 +80,9 @@ describe('truncate_styled_string', () => {
   });
   it('correctly handles nested styles', () => {
     expect(truncate_styled_string(style.bold`Hello ${style.dim`new`} world`, 14)).toEqual({
-       // NOTE tagged literals technically repush the start tag after each nest,
-       // but only close at the end. Hence are not symmetrical and cause the truncation algorithm
-       // to emit n + 1 closes at the end ( n being the number of values in the literal ) 
+      // NOTE tagged literals technically repush the start tag after each nest,
+      // but only close at the end. Hence are not symmetrical and cause the truncation algorithm
+      // to emit n + 1 closes at the end ( n being the number of values in the literal ) 
       text: style.bold`Hello ${style.dim`new`} wor…` + ESC + '22m',
       length: 14,
     });

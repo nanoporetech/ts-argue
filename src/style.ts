@@ -4,22 +4,22 @@ import { BACKGROUND_COLORS, ESC, FONT_COLORS, MODIFIERS, POP_CODES, PUSH_CODES }
 import { asDefined, asString } from 'ts-runtime-typecheck';
 
 export function style (pre: string, post: string): StyleTag {
-	const prefix = ESC + pre + 'm';
-	const postfix = ESC + post + 'm';
-	return (template: TemplateStringsArray | string, ...values: string[]) => {
-		if (typeof template === 'string') {
-			return prefix + template + postfix;
-		}
-		const results = [];
+  const prefix = ESC + pre + 'm';
+  const postfix = ESC + post + 'm';
+  return (template: TemplateStringsArray | string, ...values: string[]) => {
+    if (typeof template === 'string') {
+      return prefix + template + postfix;
+    }
+    const results = [];
 		
-		results.push(prefix);
-		let i = 0;
-		for (let l = template.length - 1; i < l; i += 1) {
-			results.push(template[i], values[i], prefix);
-		}
-		results.push(template[i], postfix);
-		return results.join('');
-	};
+    results.push(prefix);
+    let i = 0;
+    for (let l = template.length - 1; i < l; i += 1) {
+      results.push(template[i], values[i], prefix);
+    }
+    results.push(template[i], postfix);
+    return results.join('');
+  };
 }
 
 export function remove_styles(str: string): string {
@@ -118,9 +118,9 @@ export const reverse = style(MODIFIERS.reverse, MODIFIERS.no_reverse);
 export const strikethrough = style(MODIFIERS.strikethrough, MODIFIERS.no_strikethrough);
 
 export const font_color = Object.fromEntries(Object.entries(FONT_COLORS).map(([name, code]): [string, StyleTag] => 
-	[ name, style(code, FONT_COLORS.default) ]
+  [ name, style(code, FONT_COLORS.default) ]
 )) as Record<Color, StyleTag>;
 
 export const background_color = Object.fromEntries(Object.entries(BACKGROUND_COLORS).map(([name, code]): [string, StyleTag] => 
-	[ name, style(code, BACKGROUND_COLORS.default) ]
+  [ name, style(code, BACKGROUND_COLORS.default) ]
 )) as Record<Color, StyleTag>;

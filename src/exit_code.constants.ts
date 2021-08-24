@@ -1,4 +1,4 @@
 export const EXIT_CODE = {
-	ok: 0,
-	error: 1,
+  ok: 0,
+  error: 1,
 };

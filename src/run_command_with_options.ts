@@ -12,43 +12,43 @@ import { EXIT_CODE } from './exit_code.constants';
 import { terminal } from './Terminal';
 
 export async function run_command_with_options (command: Command, opts: Argv, cfg: Configuration): Promise<number> {
-	const executable = basename(opts.arguments[0]);
-	const subcommand_name = opts.arguments[1];
-	const subcommand = command.subcommands?.[subcommand_name];
+  const executable = basename(opts.arguments[0]);
+  const subcommand_name = opts.arguments[1];
+  const subcommand = command.subcommands?.[subcommand_name];
 
-	// NOTE if we have a subcommand then call that with the adjusted argv
-	if (subcommand) {
-		const child_options = rename_executable_and_remove_subcommmand(opts, `${executable}-${subcommand_name}`);
-		return run_command_with_options(subcommand, child_options, cfg);
-	}
+  // NOTE if we have a subcommand then call that with the adjusted argv
+  if (subcommand) {
+    const child_options = rename_executable_and_remove_subcommmand(opts, `${executable}-${subcommand_name}`);
+    return run_command_with_options(subcommand, child_options, cfg);
+  }
 
-	if (subcommand_name === 'help' || read_boolean_option(opts, 'help')) {
-		print_help(executable, command);
-		return EXIT_CODE.ok;
-	}
+  if (subcommand_name === 'help' || read_boolean_option(opts, 'help')) {
+    print_help(executable, command);
+    return EXIT_CODE.ok;
+  }
 
-	if (subcommand_name === 'version' || read_boolean_option(opts, 'version')) {
-		print_version(root_executable(executable), cfg);
-		return EXIT_CODE.ok;
-	}
+  if (subcommand_name === 'version' || read_boolean_option(opts, 'version')) {
+    print_version(root_executable(executable), cfg);
+    return EXIT_CODE.ok;
+  }
 
-	// NOTE if the user has not specified a command, and we have a default command, then execute that
-	if (command.default) {
-		const subcommand = command.subcommands?.[command.default];
-		if (!subcommand) {
-			throw new Error(`Implementation fault: default command ${command.default} does not exist as a subcommand of ${executable}.`);
-		}
-		const child_options = rename_executable(opts, `${executable}-${command.default}`);
-		return run_command_with_options(subcommand, child_options, cfg);
-	}
+  // NOTE if the user has not specified a command, and we have a default command, then execute that
+  if (command.default) {
+    const subcommand = command.subcommands?.[command.default];
+    if (!subcommand) {
+      throw new Error(`Implementation fault: default command ${command.default} does not exist as a subcommand of ${executable}.`);
+    }
+    const child_options = rename_executable(opts, `${executable}-${command.default}`);
+    return run_command_with_options(subcommand, child_options, cfg);
+  }
 
-	// NOTE if the command has an action attached to it then we should execute that
-	if (command.action) {
-		const child_options = remove_executable(opts);
-		try {
-			const code = await command.action(child_options);
-			return code ?? EXIT_CODE.ok;
-		} catch (err) {
+  // NOTE if the command has an action attached to it then we should execute that
+  if (command.action) {
+    const child_options = remove_executable(opts);
+    try {
+      const code = await command.action(child_options);
+      return code ?? EXIT_CODE.ok;
+    } catch (err) {
       if (err instanceof Error) {
         terminal.error(err.message);
         terminal.new_line();
@@ -56,15 +56,15 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
         terminal.error(err);
         terminal.new_line();
       }
-			return EXIT_CODE.error;
-		}
-	}
+      return EXIT_CODE.error;
+    }
+  }
 
-	if (subcommand_name) {
-		print_did_you_mean(command, executable, subcommand_name);
-		return EXIT_CODE.error;
-	}
+  if (subcommand_name) {
+    print_did_you_mean(command, executable, subcommand_name);
+    return EXIT_CODE.error;
+  }
 
-	print_help(executable, command);
-	return EXIT_CODE.ok;
+  print_help(executable, command);
+  return EXIT_CODE.ok;
 }
