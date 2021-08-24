@@ -19,7 +19,7 @@ export class Terminal {
     return this.prompt(message, 'input', initial);
   }
 
-  async options<T extends string = string>(message: string, choices: T[], type: 'select' | 'autocomplete' | 'multiselect' = 'select'): Promise<T> {
+  async select<T extends string = string>(message: string, choices: T[], type: 'select' | 'autocomplete' | 'multiselect' = 'select'): Promise<T> {
     try {
       const { result } = await prompt<{ result: T }>({
         type,

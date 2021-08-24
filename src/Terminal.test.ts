@@ -240,11 +240,11 @@ it('input calls enquirer', async () => {
 it('options calls enquirer', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockResolvedValue({ result: 'yes' });
-  expect(await terminal.options('example', ['yes', 'no'])).toEqual('yes');
+  expect(await terminal.select('example', ['yes', 'no'])).toEqual('yes');
 });
 
 it('cancelled options prompt call process.exit', async () => {
-  await expect(() => terminal.options('example', ['yes'])).rejects.toEqual(exit);
+  await expect(() => terminal.select('example', ['yes'])).rejects.toEqual(exit);
   expect(process_exit?.mock.calls).toEqual([
     [1]
   ]);
