@@ -1,4 +1,5 @@
 import { print_version } from './print_version';
+import { bold } from './style';
 
 let std_output: jest.SpiedFunction<typeof process.stdout.write> | null = null;
 beforeEach(() => {
@@ -11,5 +12,5 @@ afterEach(() => {
 
 it('prints the version', () => {
   print_version('example', { version: '42' });
-  expect(std_output?.mock.calls[0][0]).toEqual('\u001b[1mexample\u001b[22m version 42\n');
+  expect(std_output?.mock.calls[0][0]).toEqual(`${bold`example`} version 42\n`);
 });
