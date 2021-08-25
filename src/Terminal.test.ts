@@ -1,5 +1,5 @@
 import { assertDefined } from 'ts-runtime-typecheck';
-import { terminal } from './Terminal';
+import { Terminal, terminal } from './Terminal';
 import * as style from './style';
 import enquirer from 'enquirer';
 import type { WriteStream as TTYWriteStream } from 'tty';
@@ -11,13 +11,26 @@ let enquirer_prompt: jest.SpiedFunction<typeof enquirer.prompt> | null = null;
 
 const exit = new Error('not a real error');
 
+interface PublicTerminal {
+  indent: number;
+  dirty_line: symbol | null;
+  interactive: boolean;
+}
+
+// Terminal purposefully hides indent and dirty_line from the public interface
+// but to test it properly we need to poke at these values a bit
+function as_public_terminal (term: Terminal):  PublicTerminal {
+  return term as unknown as PublicTerminal;
+}
+
 beforeEach(() => {
   enquirer_prompt = jest.spyOn(enquirer, 'prompt').mockRejectedValue('mock not implemented');
   process_exit = jest.spyOn(process, 'exit').mockImplementation(() => { throw exit; });
   std_output = jest.spyOn(process.stdout, 'write');
   log_output = jest.spyOn(console, 'log');
-  terminal.indent = 0;
-  terminal.dirty_line = null;
+
+  as_public_terminal(terminal).indent = 0;
+  as_public_terminal(terminal).dirty_line = null;
 });
 
 afterEach(() => {
@@ -35,29 +48,29 @@ afterEach(() => {
 it('increase_indent/decrease_indent modifies indent level', () => {
   assertDefined(std_output);
 
-  expect(terminal.indent).toEqual(0);
+  expect(as_public_terminal(terminal).indent).toEqual(0);
 
   terminal.increase_indent();
 
-  expect(terminal.indent).toEqual(2);
+  expect(as_public_terminal(terminal).indent).toEqual(2);
 
   terminal.print_line('');
   terminal.increase_indent();
 
-  expect(terminal.indent).toEqual(4);
+  expect(as_public_terminal(terminal).indent).toEqual(4);
 
   terminal.print_line('');
   terminal.decrease_indent();
 
-  expect(terminal.indent).toEqual(2);
+  expect(as_public_terminal(terminal).indent).toEqual(2);
 
   terminal.decrease_indent();
 
-  expect(terminal.indent).toEqual(0);
+  expect(as_public_terminal(terminal).indent).toEqual(0);
 
   terminal.decrease_indent();
   
-  expect(terminal.indent).toEqual(0);
+  expect(as_public_terminal(terminal).indent).toEqual(0);
   expect(std_output.mock.calls).toEqual([
     ['  \n'],
     ['    \n']
@@ -77,7 +90,7 @@ it('print_line includes indent and newline', () => {
 it('print_line prints a new_line if dirty flag is set', () => {
   assertDefined(std_output);
 
-  terminal.dirty_line = Symbol();
+  as_public_terminal(terminal).dirty_line = Symbol();
   terminal.print_line('hello');
 
   expect(std_output.mock.calls).toEqual([
@@ -168,9 +181,7 @@ describe('reusable_line', () => {
 
   it('clears line in interactive mode', () => {
 
-    Object.defineProperty(terminal, 'interactive', {
-      value: true
-    });
+    as_public_terminal(terminal).interactive = true;
     const stdout_clearline = process.stdout.clearLine = jest.fn();
     const stdout_cursorto = process.stdout.cursorTo = jest.fn();
 
@@ -187,9 +198,7 @@ describe('reusable_line', () => {
       expect(stdout_clearline.mock.calls.length).toBe(2);
       expect(stdout_cursorto.mock.calls.length).toBe(2);
     } finally {
-      Object.defineProperty(terminal, 'interactive', {
-        value: false
-      });
+      as_public_terminal(terminal).interactive = false;
       const stdout = process.stdout as Partial<TTYWriteStream>;
       delete stdout.clearLine;
       delete stdout.cursorTo;

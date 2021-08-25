@@ -15,8 +15,8 @@ const BLOCK_CHARS = [
   '█',
 ];
 export class Terminal {
-  indent = 0;
-  dirty_line: symbol | null = null;
+  private indent = 0;
+  private dirty_line: symbol | null = null;
   readonly interactive = process.stdin.isTTY;
 
   get width(): number {
