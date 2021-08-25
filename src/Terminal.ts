@@ -3,8 +3,20 @@ import { prompt } from 'enquirer';
 import { EXIT_CODE } from './exit_code.constants';
 
 const INDENT_SIZE = 2;
+const BLOCK_CHARS = [
+  '',
+  '▏',
+  '▎',
+  '▍',
+  '▌',
+  '▋',
+  '▊',
+  '▉',
+  '█',
+];
 export class Terminal {
   indent = 0;
+  dirty_line: symbol | null = null;
   readonly interactive = process.stdin.isTTY;
 
   get width(): number {
@@ -33,17 +45,12 @@ export class Terminal {
     }
   }
 
-  print(str: string): this {
-    process.stdout.write(str);
-    return this;
-  }
-
-  start_line(): this {
-    return this.print(' '.repeat(this.indent));
-  }
-
   print_line(line: string): this {
-    return this.print(' '.repeat(this.indent) + line + '\n');
+    if (this.dirty_line) {
+      this.new_line();
+    }
+    process.stdout.write(' '.repeat(this.indent) + line + '\n');
+    return this;
   }
 
   print_lines(lines: string[]): this {
@@ -51,6 +58,45 @@ export class Terminal {
       this.print_line(line);
     }
     return this;
+  }
+
+  reusable_line(): (line: string) => void {
+    const marker = Symbol();
+    return (line: string) => {
+      if (this.dirty_line) {
+        if (this.dirty_line === marker && this.interactive) {
+          process.stdout.clearLine(0);
+          process.stdout.cursorTo(0);
+        } else {
+          this.new_line();
+        }
+      }
+      process.stdout.write(' '.repeat(this.indent) + line); // NOTE don't output newline
+      this.dirty_line = marker;
+    };
+  }
+
+  progress_bar(label: string): (ratio: number) => void {
+    const fn = this.reusable_line();
+    return (ratio: number) => {
+      // 3 extra for the space and surrounding brackets
+      const available_width = this.width - (label.length + this.indent + 3);
+      // width of the solid part of the bar, including fractional component
+      const filled = Math.max(0, Math.min(1, ratio)) * available_width;
+
+      // integer component of the solid part
+      const filled_width = Math.floor(filled);
+      // fractional component of the solid part
+      const fractional = filled - filled_width;
+      // we have 8 block chars (1/8, 2/8...8/8). This is an index of the first 7. 
+      // 0 is an empty string in our lookup, and we skip 8 as it's a solid block
+      // and this is for a partial block
+      const partial_width = Math.floor(fractional * 8);
+      // spaces after the block chars
+      const padding_width = available_width - Math.ceil(filled);
+
+      fn(`${label} [${ BLOCK_CHARS[8].repeat(filled_width) }${ BLOCK_CHARS[partial_width] }${ ' '.repeat(padding_width) }]`);
+    };
   }
 
   // TODO allow column size options ( similar to flex: 1 etc )
@@ -151,7 +197,9 @@ export class Terminal {
   }
 
   new_line(): this {
-    return this.print('\n');
+    process.stdout.write('\n');
+    this.dirty_line = null;
+    return this;
   }
 
   increase_indent(): this {
