@@ -1,7 +1,8 @@
 import { assertDefined } from 'ts-runtime-typecheck';
-import { terminal } from './Terminal';
+import { Terminal, terminal } from './Terminal';
 import * as style from './style';
 import enquirer from 'enquirer';
+import type { WriteStream as TTYWriteStream } from 'tty';
 
 let std_output: jest.SpiedFunction<typeof process.stdout.write> | null = null;
 let log_output: jest.SpiedFunction<typeof console.log> | null = null;
@@ -10,15 +11,30 @@ let enquirer_prompt: jest.SpiedFunction<typeof enquirer.prompt> | null = null;
 
 const exit = new Error('not a real error');
 
+interface PublicTerminal {
+  indent: number;
+  dirty_line: symbol | null;
+  interactive: boolean;
+}
+
+// Terminal purposefully hides indent and dirty_line from the public interface
+// but to test it properly we need to poke at these values a bit
+function as_public_terminal (term: Terminal):  PublicTerminal {
+  return term as unknown as PublicTerminal;
+}
+
 beforeEach(() => {
   enquirer_prompt = jest.spyOn(enquirer, 'prompt').mockRejectedValue('mock not implemented');
   process_exit = jest.spyOn(process, 'exit').mockImplementation(() => { throw exit; });
   std_output = jest.spyOn(process.stdout, 'write');
   log_output = jest.spyOn(console, 'log');
-  terminal.indent = 0;
+
+  as_public_terminal(terminal).indent = 0;
+  as_public_terminal(terminal).dirty_line = null;
 });
 
 afterEach(() => {
+  process.stdout.write('\n');
   std_output && std_output.mockRestore();
   log_output && log_output.mockRestore();
   process_exit && process_exit.mockRestore();
@@ -29,42 +45,35 @@ afterEach(() => {
   enquirer_prompt = null;
 });
 
-it('prints to process.stdout', () => {
-  assertDefined(std_output);
-  terminal.print('hello world');
-  expect(std_output.mock.calls).toEqual([
-    ['hello world']
-  ]);
-});
 it('increase_indent/decrease_indent modifies indent level', () => {
   assertDefined(std_output);
 
-  expect(terminal.indent).toEqual(0);
+  expect(as_public_terminal(terminal).indent).toEqual(0);
 
   terminal.increase_indent();
 
-  expect(terminal.indent).toEqual(2);
+  expect(as_public_terminal(terminal).indent).toEqual(2);
 
-  terminal.start_line();
+  terminal.print_line('');
   terminal.increase_indent();
 
-  expect(terminal.indent).toEqual(4);
+  expect(as_public_terminal(terminal).indent).toEqual(4);
 
-  terminal.start_line();
+  terminal.print_line('');
   terminal.decrease_indent();
 
-  expect(terminal.indent).toEqual(2);
+  expect(as_public_terminal(terminal).indent).toEqual(2);
 
   terminal.decrease_indent();
 
-  expect(terminal.indent).toEqual(0);
+  expect(as_public_terminal(terminal).indent).toEqual(0);
 
   terminal.decrease_indent();
   
-  expect(terminal.indent).toEqual(0);
+  expect(as_public_terminal(terminal).indent).toEqual(0);
   expect(std_output.mock.calls).toEqual([
-    ['  '],
-    ['    ']
+    ['  \n'],
+    ['    \n']
   ]);
 });
 it('print_line includes indent and newline', () => {
@@ -76,6 +85,17 @@ it('print_line includes indent and newline', () => {
 
   expect(std_output.mock.calls).toEqual([
     ['  hello world\n'],
+  ]);
+});
+it('print_line prints a new_line if dirty flag is set', () => {
+  assertDefined(std_output);
+
+  as_public_terminal(terminal).dirty_line = Symbol();
+  terminal.print_line('hello');
+
+  expect(std_output.mock.calls).toEqual([
+    ['\n'],
+    ['hello\n'],
   ]);
 });
 it('print_lines includes indent and newline for each element', () => {
@@ -140,6 +160,68 @@ it('error calls console.log with custom prefix', () => {
   expect(log_output.mock.calls).toEqual([
     [style.font_color.red`error -`, 'hello world'],
   ]);
+});
+
+describe('reusable_line', () => {
+  it('works in non-interactive mode', () => {
+    const line = terminal.reusable_line();
+    line('a');
+    line('b');
+    terminal.increase_indent();
+    line('c');
+
+    assertDefined(std_output);
+
+    expect(std_output.mock.calls).toEqual([
+      ['a'], ['\n'],
+      ['b'], ['\n'],
+      ['  c']
+    ]);
+  });
+
+  it('clears line in interactive mode', () => {
+
+    as_public_terminal(terminal).interactive = true;
+    const stdout_clearline = process.stdout.clearLine = jest.fn();
+    const stdout_cursorto = process.stdout.cursorTo = jest.fn();
+
+    try {
+      const line = terminal.reusable_line();
+
+      line('a');
+      expect(stdout_clearline.mock.calls.length).toBe(0);
+      expect(stdout_cursorto.mock.calls.length).toBe(0);
+      line('b');
+      expect(stdout_clearline.mock.calls.length).toBe(1);
+      expect(stdout_cursorto.mock.calls.length).toBe(1);
+      line('c');
+      expect(stdout_clearline.mock.calls.length).toBe(2);
+      expect(stdout_cursorto.mock.calls.length).toBe(2);
+    } finally {
+      as_public_terminal(terminal).interactive = false;
+      const stdout = process.stdout as Partial<TTYWriteStream>;
+      delete stdout.clearLine;
+      delete stdout.cursorTo;
+    }
+  });
+});
+
+describe('progress', () => {
+  it('works in non-interactive mode', () => {
+    const line = terminal.progress_bar('note');
+    line(0);
+    line(0.5);
+    terminal.increase_indent();
+    line(1);
+
+    assertDefined(std_output);
+
+    expect(std_output.mock.calls).toEqual([
+      ['note [                                                                         ]'], ['\n'],
+      ['note [████████████████████████████████████▌                                    ]'], ['\n'],
+      ['  note [███████████████████████████████████████████████████████████████████████]'],
+    ]);
+  });
 });
 
 describe('print_table', () => {
