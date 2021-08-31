@@ -319,13 +319,19 @@ it('input calls enquirer', async () => {
   expect(await terminal.input('example', 'yes')).toEqual('yes');
 });
 
-it('options calls enquirer', async () => {
+it('select calls enquirer', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockResolvedValue({ result: 'yes' });
   expect(await terminal.select('example', ['yes', 'no'])).toEqual('yes');
 });
 
-it('cancelled options prompt call process.exit', async () => {
+it('select throws if an empty list is passed', async () => {
+  assertDefined(enquirer_prompt);
+  enquirer_prompt.mockResolvedValue({ result: 'yes' });
+  await expect(() => terminal.select('example', [])).rejects.toThrow('Implementation error: cannot display an empty selection list.');
+});
+
+it('cancelled select prompt call process.exit', async () => {
   await expect(() => terminal.select('example', ['yes'])).rejects.toEqual(exit);
   expect(process_exit?.mock.calls).toEqual([
     [1]
