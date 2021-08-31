@@ -3,6 +3,7 @@ import type { Command } from './Command.type';
 import { terminal } from './Terminal';
 
 import * as style from './style';
+import { print_examples } from './print_examples';
 
 export function print_help(executable: string, command: Command): void {
   const subcommands = new Map([
@@ -52,9 +53,7 @@ export function print_help(executable: string, command: Command): void {
 
   if (command.examples && command.examples.length > 0) {
     start_group('examples');
-    for (const example of command.examples) {
-      terminal.print_line(style.dim`${exe_name} ${example}`);
-    }
+    print_examples(exe_name, command);
     end_group();
   }
 
