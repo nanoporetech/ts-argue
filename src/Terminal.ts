@@ -32,6 +32,10 @@ export class Terminal {
   }
 
   async select<T extends string = string>(message: string, choices: T[], type: 'select' | 'autocomplete' | 'multiselect' = 'select'): Promise<T> {
+    if (choices.length === 0) {
+      throw new Error('Implementation error: cannot display an empty selection list.');
+    }
+    
     try {
       const { result } = await prompt<{ result: T }>({
         type,
