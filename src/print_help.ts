@@ -3,7 +3,7 @@ import type { Command } from './Command.type';
 import { terminal } from './Terminal';
 
 import * as style from './style';
-import { print_examples } from './print_examples';
+import { print_examples, will_print_examples } from './print_examples';
 
 export function print_help(executable: string, command: Command): void {
   const subcommands = new Map([
@@ -53,10 +53,12 @@ export function print_help(executable: string, command: Command): void {
 
   // NOTE this used to be optional based on if examples existed
   // in the command but it's harder to tell now with the recursive
-  // printing. 
-  start_group('examples');
-  print_examples(exe_name, command);
-  end_group();
+  // printing. So we now use an helper
+  if (will_print_examples(command)) {
+    start_group('examples');
+    print_examples(exe_name, command);
+    end_group();
+  }
 
   start_group('commands');
   // NOTE we want to alphabetically sort and format the subcommands into something nice

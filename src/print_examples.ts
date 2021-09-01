@@ -2,6 +2,29 @@ import type { Command } from './Command.type';
 import { dim } from './style';
 import { terminal } from './Terminal';
 
+
+export function will_print_examples(command: Command): boolean {
+  if (command.examples) {
+    if (command.examples.length > 0) {
+      return true;
+    }
+  } else {
+    if (command.action) {
+      return true;
+    }
+  }
+
+  if (command.subcommands && command.default) {
+    return true;
+  }
+
+  if (command.subcommands) {
+    return Object.values(command.subcommands).some(command => will_print_examples(command));
+  }
+
+  return false;
+}
+
 export function print_examples (exe_name: string, command: Command): void {
 
   if (command.examples) {

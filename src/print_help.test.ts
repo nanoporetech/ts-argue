@@ -17,8 +17,6 @@ it('prints usage + inbuilt options/commands with stub', () => {
   expect(std_output.mock.calls.map(([str]) => str)).toEqual([
     `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
     '\n',
-    style.bold('EXAMPLES:') + '\n',
-    '\n',
     style.bold('COMMANDS:') + '\n',
     `  help      ${style.dim('Display help')}\n`,
     `  version   ${style.dim('Display version')}\n`,
@@ -51,8 +49,6 @@ it('prints custom options/commands', () => {
   expect(std_output.mock.calls.map(([str]) => str)).toEqual([
     `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
     '\n',
-    style.bold('EXAMPLES:') + '\n',
-    '\n',
     style.bold('COMMANDS:') + '\n',
     `  alpha        ${style.dim('this is description')}\n`,
     `  beta         ${style.dim('')}\n`,
@@ -79,8 +75,6 @@ it('prints description', () => {
     'something about example\n',
     '\n',
     `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
-    '\n',
-    style.bold('EXAMPLES:') + '\n',
     '\n',
     style.bold('COMMANDS:') + '\n',
     `  help      ${style.dim('Display help')}\n`,
