@@ -17,6 +17,8 @@ it('prints usage + inbuilt options/commands with stub', () => {
   expect(std_output.mock.calls.map(([str]) => str)).toEqual([
     `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
     '\n',
+    style.bold('EXAMPLES:') + '\n',
+    '\n',
     style.bold('COMMANDS:') + '\n',
     `  help      ${style.dim('Display help')}\n`,
     `  version   ${style.dim('Display version')}\n`,
@@ -49,6 +51,8 @@ it('prints custom options/commands', () => {
   expect(std_output.mock.calls.map(([str]) => str)).toEqual([
     `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
     '\n',
+    style.bold('EXAMPLES:') + '\n',
+    '\n',
     style.bold('COMMANDS:') + '\n',
     `  alpha        ${style.dim('this is description')}\n`,
     `  beta         ${style.dim('')}\n`,
@@ -75,6 +79,8 @@ it('prints description', () => {
     'something about example\n',
     '\n',
     `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
+    '\n',
+    style.bold('EXAMPLES:') + '\n',
     '\n',
     style.bold('COMMANDS:') + '\n',
     `  help      ${style.dim('Display help')}\n`,
@@ -104,6 +110,35 @@ it('prints examples', () => {
     `  ${style.dim`${'example'} ${'one'}`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
+    `  help      ${style.dim('Display help')}\n`,
+    `  version   ${style.dim('Display version')}\n`,
+    '\n',
+    style.bold('OPTIONS:') + '\n',
+    `  --help    ${style.dim('Output usage information')}\n`,
+    `  --version ${style.dim('Output the version number')}\n`,
+    '\n',
+  ]);
+});
+
+it('prints automatic examples', () => {
+  assertDefined(std_output);
+  print_help('example', {
+    subcommands: {
+      a: { action () { return; } },
+      b: { action () { return; } }
+    }
+  });
+
+  expect(std_output.mock.calls.map(([str]) => str)).toEqual([
+    `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
+    '\n',
+    style.bold('EXAMPLES:') + '\n',
+    `  ${style.dim`${'example a'}`}\n`,
+    `  ${style.dim`${'example b'}`}\n`,
+    '\n',
+    style.bold('COMMANDS:') + '\n',
+    `  a         ${style.dim('')}\n`,
+    `  b         ${style.dim('')}\n`,
     `  help      ${style.dim('Display help')}\n`,
     `  version   ${style.dim('Display version')}\n`,
     '\n',

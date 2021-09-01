@@ -51,11 +51,12 @@ export function print_help(executable: string, command: Command): void {
   terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options] [command]`}`);
   terminal.new_line();
 
-  if (command.examples && command.examples.length > 0) {
-    start_group('examples');
-    print_examples(exe_name, command);
-    end_group();
-  }
+  // NOTE this used to be optional based on if examples existed
+  // in the command but it's harder to tell now with the recursive
+  // printing. 
+  start_group('examples');
+  print_examples(exe_name, command);
+  end_group();
 
   start_group('commands');
   // NOTE we want to alphabetically sort and format the subcommands into something nice
