@@ -114,6 +114,35 @@ it('prints examples', () => {
   ]);
 });
 
+it('prints automatic examples', () => {
+  assertDefined(std_output);
+  print_help('example', {
+    subcommands: {
+      a: { action () { return; } },
+      b: { action () { return; } }
+    }
+  });
+
+  expect(std_output.mock.calls.map(([str]) => str)).toEqual([
+    `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
+    '\n',
+    style.bold('EXAMPLES:') + '\n',
+    `  ${style.dim`${'example a'}`}\n`,
+    `  ${style.dim`${'example b'}`}\n`,
+    '\n',
+    style.bold('COMMANDS:') + '\n',
+    `  a         ${style.dim('')}\n`,
+    `  b         ${style.dim('')}\n`,
+    `  help      ${style.dim('Display help')}\n`,
+    `  version   ${style.dim('Display version')}\n`,
+    '\n',
+    style.bold('OPTIONS:') + '\n',
+    `  --help    ${style.dim('Output usage information')}\n`,
+    `  --version ${style.dim('Output the version number')}\n`,
+    '\n',
+  ]);
+});
+
 /*
   test prints examples if included
 */

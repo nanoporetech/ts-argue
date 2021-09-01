@@ -3,7 +3,7 @@ import type { Command } from './Command.type';
 import { terminal } from './Terminal';
 
 import * as style from './style';
-import { print_examples } from './print_examples';
+import { print_examples, will_print_examples } from './print_examples';
 
 export function print_help(executable: string, command: Command): void {
   const subcommands = new Map([
@@ -51,7 +51,10 @@ export function print_help(executable: string, command: Command): void {
   terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options] [command]`}`);
   terminal.new_line();
 
-  if (command.examples && command.examples.length > 0) {
+  // NOTE this used to be optional based on if examples existed
+  // in the command but it's harder to tell now with the recursive
+  // printing. So we now use an helper
+  if (will_print_examples(command)) {
     start_group('examples');
     print_examples(exe_name, command);
     end_group();

@@ -1,5 +1,5 @@
 import { assertDefined } from 'ts-runtime-typecheck';
-import { print_examples } from './print_examples';
+import { print_examples, will_print_examples } from './print_examples';
 import * as style from './style';
 
 let std_output: jest.SpiedFunction<typeof process.stdout.write> | null = null;
@@ -83,5 +83,33 @@ describe('prints_examples', () => {
     expect(std_output.mock.calls.map(([str]) => str)).toEqual([
       `${style.dim`${'example'}`}\n`,
     ]);
+  });
+});
+
+describe('will_print_examples', () => {
+  it('if contains examples', () => {
+    expect(will_print_examples({ examples: [ 'test' ]})).toBe(true);
+    expect(will_print_examples({ examples: []})).toBe(false);
+    expect(will_print_examples({})).toBe(false);
+  });
+  it('if contains action', () => {
+    expect(will_print_examples({ action () { return; }})).toBe(true);
+    expect(will_print_examples({ action () { return; }, examples: [] })).toBe(false);
+  });
+  it('if contains default subcommand', () => {
+    expect(will_print_examples({ subcommands: {}, default: 'a' })).toBe(true);
+    expect(will_print_examples({ default: 'a' })).toBe(false);
+  });
+  it('if subcommands will print', () => {
+    expect(will_print_examples({ 
+      subcommands: {
+        a: { examples: [ 'hello' ]}
+      }
+    })).toBe(true);
+    expect(will_print_examples({ 
+      subcommands: {
+        a: { examples: []}
+      }
+    })).toBe(false);
   });
 });
