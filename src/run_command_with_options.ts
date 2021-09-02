@@ -11,7 +11,7 @@ import { read_boolean_option, remove_executable, rename_executable, rename_execu
 import { EXIT_CODE } from './exit_code.constants';
 import { terminal } from './Terminal';
 
-export async function run_command_with_options (command: Command, opts: Argv, cfg: Configuration): Promise<number> {
+export async function run_command_with_options (command: Command, opts: Argv, cfg: Configuration): Promise<number | void> {
   const executable = basename(opts.arguments[0]);
   const subcommand_name = opts.arguments[1];
   const subcommand = command.subcommands?.[subcommand_name];
@@ -46,8 +46,7 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
   if (command.action) {
     const child_options = remove_executable(opts);
     try {
-      const code = await command.action(child_options);
-      return code ?? EXIT_CODE.ok;
+      return await command.action(child_options);
     } catch (err) {
       if (err instanceof Error) {
         terminal.error(err.message);

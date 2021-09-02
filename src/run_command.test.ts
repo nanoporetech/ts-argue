@@ -71,9 +71,7 @@ it('sync action default exit code', async () => {
   } catch {
     // test throws harmless error instead of calling process.exit
   }
-  expect(process_exit.mock.calls).toEqual([
-    [0],
-  ]);
+  expect(process_exit.mock.calls.length).toEqual(0);
 });
 
 it('failing action default error exit code', async () => {
