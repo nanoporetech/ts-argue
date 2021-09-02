@@ -31,7 +31,7 @@ it('execute subcommand', async () => {
     }
   }, parse_argv(['example', 'test', 'data']), cfg);
   expect(did_run).toEqual(true);
-  expect(result).toEqual(0);
+  expect(result).toEqual(undefined);
 });
 it('execute help subcommand', async () => {
   const result = await run_command_with_options({}, parse_argv(['example', 'help']), cfg);
@@ -76,7 +76,7 @@ it('execute default subcommand', async () => {
     default: 'list',
   }, parse_argv(['example', 'arg']), cfg);
   expect(did_run).toEqual(true);
-  expect(result).toEqual(0);
+  expect(result).toEqual(undefined);
 });
 it('execute default subcommand', async () => {
   await expect(() => run_command_with_options({
@@ -89,7 +89,7 @@ it('returns default exit code for successful action', async () => {
       // no-op
     }
   }, parse_argv(['example', 'arg']), cfg);
-  expect(result).toEqual(0);
+  expect(result).toEqual(undefined);
 });
 it('returns custom exit code for successful action', async () => {
   const result = await run_command_with_options({
