@@ -65,37 +65,44 @@ export class Terminal {
 
   print_line(line: string): this {
     if (this.dirty_line) {
-      this.new_line();
+      this.dirty_line = null;
     }
     process.stdout.write(' '.repeat(this.indent) + line + '\n');
     return this;
   }
 
   print_lines(lines: string[]): this {
+    if (this.dirty_line) {
+      this.dirty_line = null;
+    }
     for (const line of lines) {
-      this.print_line(line);
+      process.stdout.write(' '.repeat(this.indent) + line + '\n');
     }
     return this;
   }
 
-  reusable_line(): (line: string) => void {
+  reusable_block(): (...lines: string[]) => void {
     const marker = Symbol();
-    return (line: string) => {
-      if (this.dirty_line) {
-        if (this.dirty_line === marker && this.interactive) {
+    let line_counter = 0;
+    return (...lines: string[]) => {
+      if (this.dirty_line === marker && this.interactive) {
+        for (let i = 0; i < line_counter; i += 1) {
+          process.stdout.moveCursor(0, -1);
           process.stdout.clearLine(0);
-          process.stdout.cursorTo(0);
-        } else {
-          this.new_line();
         }
+        process.stdout.cursorTo(0);
       }
-      process.stdout.write(' '.repeat(this.indent) + line); // NOTE don't output newline
+
+      for (const line of lines) {
+        process.stdout.write(' '.repeat(this.indent) + line + '\n');
+      }
+      line_counter = lines.length;
       this.dirty_line = marker;
     };
   }
 
   progress_bar(label: string): (ratio: number) => void {
-    const fn = this.reusable_line();
+    const fn = this.reusable_block();
     return (ratio: number) => {
       // 3 extra for the space and surrounding brackets
       const available_width = this.width - (label.length + this.indent + 3);
@@ -228,24 +235,6 @@ export class Terminal {
   decrease_indent(): this {
     this.indent = Math.max(0, this.indent - INDENT_SIZE);
     return this;
-  }
-
-  info(...values: unknown[]): void {
-    // NOTE there is an extra space here, so that info/error/warn/debug align
-    console.log('info  -', ...values);
-  }
-
-  debug(...values: unknown[]): void {
-    console.log(style.font_color.blue`debug -`, ...values);
-  }
-
-  warn(...values: unknown[]): void {
-    // NOTE there is an extra space here, so that info/error/warn/debug align
-    console.log(style.font_color.yellow`warn  -`, ...values);
-  }
-
-  error(...values: unknown[]): void {
-    console.log(style.font_color.red`error -`, ...values);
   }
 }
 

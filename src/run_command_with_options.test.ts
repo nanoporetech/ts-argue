@@ -5,17 +5,13 @@ import * as style from './style';
 const cfg = { version: '1' };
 
 let std_output: jest.SpiedFunction<typeof process.stdout.write> | null = null;
-let log_output: jest.SpiedFunction<typeof console.log> | null = null;
 
 beforeEach(() => {
   std_output = jest.spyOn(process.stdout, 'write');
-  log_output = jest.spyOn(console, 'log');
 });
 afterEach(() => {
   std_output && std_output.mockRestore();
-  log_output && log_output.mockRestore();
   std_output = null;
-  log_output = null;
 });
 
 it('execute subcommand', async () => {
@@ -106,8 +102,9 @@ it('handles a thrown error in an action', async () => {
     }
   }, parse_argv(['example']), cfg);
   expect(result).toEqual(1);
-  expect(log_output?.mock.calls).toEqual([
-    [style.font_color.red`error -`, 'BANG'],
+  expect(std_output?.mock.calls).toEqual([
+    [`${style.font_color.red`error`} - BANG\n`],
+    ['\n']
   ]);
 });
 it('handles a thrown value in an action', async () => {
@@ -117,8 +114,9 @@ it('handles a thrown value in an action', async () => {
     }
   }, parse_argv(['example']), cfg);
   expect(result).toEqual(1);
-  expect(log_output?.mock.calls).toEqual([
-    [style.font_color.red`error -`, 'BANG'],
+  expect(std_output?.mock.calls).toEqual([
+    [`${style.font_color.red`error`} - 'BANG'\n`],
+    ['\n']
   ]);
 });
 it('handles a misspelt subcommand', async () => {

@@ -5,7 +5,6 @@ import enquirer from 'enquirer';
 import type { WriteStream as TTYWriteStream } from 'tty';
 
 let std_output: jest.SpiedFunction<typeof process.stdout.write> | null = null;
-let log_output: jest.SpiedFunction<typeof console.log> | null = null;
 let process_exit: jest.SpiedFunction<typeof process.exit> | null = null;
 let enquirer_prompt: jest.SpiedFunction<typeof enquirer.prompt> | null = null;
 
@@ -27,7 +26,6 @@ beforeEach(() => {
   enquirer_prompt = jest.spyOn(enquirer, 'prompt').mockRejectedValue('mock not implemented');
   process_exit = jest.spyOn(process, 'exit').mockImplementation(() => { throw exit; });
   std_output = jest.spyOn(process.stdout, 'write');
-  log_output = jest.spyOn(console, 'log');
 
   as_public_terminal(terminal).indent = 0;
   as_public_terminal(terminal).dirty_line = null;
@@ -36,11 +34,9 @@ beforeEach(() => {
 afterEach(() => {
   process.stdout.write('\n');
   std_output && std_output.mockRestore();
-  log_output && log_output.mockRestore();
   process_exit && process_exit.mockRestore();
   enquirer_prompt && enquirer_prompt.mockRestore();
   std_output = null;
-  log_output = null;
   process_exit = null;
   enquirer_prompt = null;
 });
@@ -87,16 +83,16 @@ it('print_line includes indent and newline', () => {
     ['  hello world\n'],
   ]);
 });
-it('print_line prints a new_line if dirty flag is set', () => {
+it('print_line clear dirty flag if set', () => {
   assertDefined(std_output);
 
   as_public_terminal(terminal).dirty_line = Symbol();
   terminal.print_line('hello');
 
   expect(std_output.mock.calls).toEqual([
-    ['\n'],
     ['hello\n'],
   ]);
+  expect(as_public_terminal(terminal).dirty_line).toBe(null);
 });
 it('print_lines includes indent and newline for each element', () => {
   assertDefined(std_output);
@@ -110,6 +106,17 @@ it('print_lines includes indent and newline for each element', () => {
     ['  world\n'],
   ]);
 });
+it('print_lines clear dirty flag if set', () => {
+  assertDefined(std_output);
+
+  as_public_terminal(terminal).dirty_line = Symbol();
+  terminal.print_lines(['hello']);
+
+  expect(std_output.mock.calls).toEqual([
+    ['hello\n'],
+  ]);
+  expect(as_public_terminal(terminal).dirty_line).toBe(null);
+});
 it('new_line prints a newline character', () => {
   assertDefined(std_output);
 
@@ -120,51 +127,9 @@ it('new_line prints a newline character', () => {
   ]);
 });
 
-it('info calls console.log with custom prefix', () => {
-  assertDefined(log_output);
-
-  terminal.info('hello world');
-
-  expect(log_output.mock.calls).toEqual([
-    // NOTE there is an extra space here, so that info/error/warn/debug align
-    ['info  -', 'hello world'],
-  ]);
-});
-
-it('debug calls console.log with custom prefix', () => {
-  assertDefined(log_output);
-
-  terminal.debug('hello world');
-
-  expect(log_output.mock.calls).toEqual([
-    [style.font_color.blue`debug -`, 'hello world'],
-  ]);
-});
-
-it('warn calls console.log with custom prefix', () => {
-  assertDefined(log_output);
-
-  terminal.warn('hello world');
-
-  expect(log_output.mock.calls).toEqual([
-    // NOTE there is an extra space here, so that info/error/warn/debug align
-    [style.font_color.yellow`warn  -`, 'hello world'],
-  ]);
-});
-
-it('error calls console.log with custom prefix', () => {
-  assertDefined(log_output);
-
-  terminal.error('hello world');
-
-  expect(log_output.mock.calls).toEqual([
-    [style.font_color.red`error -`, 'hello world'],
-  ]);
-});
-
 describe('reusable_line', () => {
   it('works in non-interactive mode', () => {
-    const line = terminal.reusable_line();
+    const line = terminal.reusable_block();
     line('a');
     line('b');
     terminal.increase_indent();
@@ -173,35 +138,48 @@ describe('reusable_line', () => {
     assertDefined(std_output);
 
     expect(std_output.mock.calls).toEqual([
-      ['a'], ['\n'],
-      ['b'], ['\n'],
-      ['  c']
+      ['a\n'],
+      ['b\n'],
+      ['  c\n']
     ]);
   });
 
   it('clears line in interactive mode', () => {
 
     as_public_terminal(terminal).interactive = true;
+    const stdout_moveto = process.stdout.moveCursor = jest.fn();
     const stdout_clearline = process.stdout.clearLine = jest.fn();
     const stdout_cursorto = process.stdout.cursorTo = jest.fn();
 
     try {
-      const line = terminal.reusable_line();
+      const line = terminal.reusable_block();
 
       line('a');
+      expect(stdout_moveto.mock.calls.length).toBe(0);
       expect(stdout_clearline.mock.calls.length).toBe(0);
       expect(stdout_cursorto.mock.calls.length).toBe(0);
       line('b');
+      expect(stdout_moveto.mock.calls.length).toBe(1);
       expect(stdout_clearline.mock.calls.length).toBe(1);
       expect(stdout_cursorto.mock.calls.length).toBe(1);
       line('c');
+      expect(stdout_moveto.mock.calls.length).toBe(2);
       expect(stdout_clearline.mock.calls.length).toBe(2);
       expect(stdout_cursorto.mock.calls.length).toBe(2);
+      line('d', 'e');
+      expect(stdout_moveto.mock.calls.length).toBe(3);
+      expect(stdout_clearline.mock.calls.length).toBe(3);
+      expect(stdout_cursorto.mock.calls.length).toBe(3);
+      line();
+      expect(stdout_moveto.mock.calls.length).toBe(5);
+      expect(stdout_clearline.mock.calls.length).toBe(5);
+      expect(stdout_cursorto.mock.calls.length).toBe(4);
     } finally {
       as_public_terminal(terminal).interactive = false;
       const stdout = process.stdout as Partial<TTYWriteStream>;
       delete stdout.clearLine;
       delete stdout.cursorTo;
+      delete stdout.moveCursor;
     }
   });
 });
@@ -217,9 +195,9 @@ describe('progress', () => {
     assertDefined(std_output);
 
     expect(std_output.mock.calls).toEqual([
-      ['note [                                                                         ]'], ['\n'],
-      ['note [████████████████████████████████████▌                                    ]'], ['\n'],
-      ['  note [███████████████████████████████████████████████████████████████████████]'],
+      ['note [                                                                         ]\n'],
+      ['note [████████████████████████████████████▌                                    ]\n'],
+      ['  note [███████████████████████████████████████████████████████████████████████]\n'],
     ]);
   });
 });
