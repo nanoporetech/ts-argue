@@ -10,6 +10,8 @@ import { print_version } from './print_version';
 import { read_boolean_option, remove_executable, rename_executable, rename_executable_and_remove_subcommmand, root_executable } from './Argv';
 import { EXIT_CODE } from './exit_code.constants';
 import { terminal } from './Terminal';
+import { font_color } from './style';
+import util from 'util';
 
 export async function run_command_with_options (command: Command, opts: Argv, cfg: Configuration): Promise<number | void> {
   const executable = basename(opts.arguments[0]);
@@ -49,12 +51,11 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
       return await command.action(child_options);
     } catch (err) {
       if (err instanceof Error) {
-        terminal.error(err.message);
-        terminal.new_line();
+        terminal.print_line(`${font_color.red`error`} - ${err.message}`);
       } else {
-        terminal.error(err);
-        terminal.new_line();
+        terminal.print_line(`${font_color.red`error`} - ${util.inspect(err)}`);
       }
+      terminal.new_line();
       return EXIT_CODE.error;
     }
   }
