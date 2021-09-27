@@ -102,8 +102,7 @@ it('print_line corrects indentation when passed multiple lines', () => {
   terminal.decrease_indent();
 
   expect(std_output.mock.calls).toEqual([
-    ['  hello\n'],
-    ['  world\n'],
+    ['  hello\n  world\n'],
   ]);
 });
 it('print_lines includes indent and newline for each element', () => {
@@ -114,9 +113,7 @@ it('print_lines includes indent and newline for each element', () => {
   terminal.decrease_indent();
 
   expect(std_output.mock.calls).toEqual([
-    ['  hello\n'],
-    ['  new\n'],
-    ['  world\n'],
+    [ '  hello\n  new\n  world\n' ],
   ]);
 });
 it('print_lines clear dirty flag if set', () => {
