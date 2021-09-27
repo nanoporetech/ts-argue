@@ -94,15 +94,28 @@ it('print_line clear dirty flag if set', () => {
   ]);
   expect(as_public_terminal(terminal).dirty_line).toBe(null);
 });
-it('print_lines includes indent and newline for each element', () => {
+it('print_line corrects indentation when passed multiple lines', () => {
   assertDefined(std_output);
 
   terminal.increase_indent();
-  terminal.print_lines(['hello','world']);
+  terminal.print_line('hello\nworld');
   terminal.decrease_indent();
 
   expect(std_output.mock.calls).toEqual([
     ['  hello\n'],
+    ['  world\n'],
+  ]);
+});
+it('print_lines includes indent and newline for each element', () => {
+  assertDefined(std_output);
+
+  terminal.increase_indent();
+  terminal.print_lines(['hello','new\nworld']);
+  terminal.decrease_indent();
+
+  expect(std_output.mock.calls).toEqual([
+    ['  hello\n'],
+    ['  new\n'],
     ['  world\n'],
   ]);
 });

@@ -67,18 +67,17 @@ export class Terminal {
     if (this.dirty_line) {
       this.dirty_line = null;
     }
-    process.stdout.write(' '.repeat(this.indent) + line + '\n');
+    process.stdout.write(
+      line.split('\n')
+        .map(sub_line => ' '.repeat(this.indent) + sub_line + '\n')
+        .join('')
+    );
+    
     return this;
   }
 
   print_lines(lines: string[]): this {
-    if (this.dirty_line) {
-      this.dirty_line = null;
-    }
-    for (const line of lines) {
-      process.stdout.write(' '.repeat(this.indent) + line + '\n');
-    }
-    return this;
+    return this.print_line(lines.join('\n'));
   }
 
   reusable_block(): (...lines: string[]) => void {
@@ -125,6 +124,7 @@ export class Terminal {
   }
 
   // TODO allow column size options ( similar to flex: 1 etc )
+  // TODO fix row height issues ( newlines in cells, overflow? )
   // TODO resolve emoji issues...
   print_table(rows: string[][], header?: string[]): this {
     // column_widths stores the maximum width of the cells in that column (normalized)
