@@ -139,3 +139,32 @@ it('default help execution', async () => {
   expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`);
   expect(result).toEqual(0);
 });
+it('strict_options reject extra options', async () => {
+  const result = await run_command_with_options({
+    action() {
+      // no-op
+    }
+  }, parse_argv(['example', '--flag']), {
+    ...cfg,
+    strict_options: true,
+  });
+  expect(result).toEqual(1);
+  expect(std_output?.mock.calls).toEqual([
+    [`${style.font_color.red`error`} - Unrecognised option --flag\n`],
+    ['\n']
+  ]);
+});
+it('strict_options accepts defined options', async () => {
+  const result = await run_command_with_options({
+    action() {
+      return 42;
+    },
+    options: {
+      flag: 'some option'
+    }
+  }, parse_argv(['example', '--flag']), {
+    ...cfg,
+    strict_options: true,
+  });
+  expect(result).toEqual(42);
+});
