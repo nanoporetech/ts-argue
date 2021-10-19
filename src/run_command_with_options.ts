@@ -40,6 +40,15 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
     if (!subcommand) {
       throw new Error(`Implementation fault: default command ${command.default} does not exist as a subcommand of ${executable}.`);
     }
+    
+    const max_parameters = subcommand.parameters ?? 0;
+    const argument_count = opts.arguments.length - 1;
+
+    if (argument_count > max_parameters && command.subcommands) {
+      print_did_you_mean(command, executable, subcommand_name);
+      return EXIT_CODE.error;
+    }
+
     const child_options = rename_executable(opts, `${executable}-${command.default}`);
     return run_command_with_options(subcommand, child_options, cfg);
   }
@@ -51,7 +60,7 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
     const argument_count = child_options.arguments.length;
 
     if (argument_count > max_parameters) {
-      if (subcommand_name && command.subcommands) {
+      if (command.subcommands) {
         print_did_you_mean(command, executable, subcommand_name);
       } else {
         terminal

@@ -193,3 +193,49 @@ it('suggests a subcommand if subcommands are defined and there are too many argu
     '\n',
   ]);
 });
+it('suggests a subcommand if subcommands are defined and there are too many arguments for the default subcommand', async () => {
+  let did_run = false;
+  const result = await run_command_with_options({
+    subcommands: {
+      alpha: {},
+    },
+    default: 'alpha',
+    action () {
+      did_run = true;
+      // no-op
+    },
+  }, parse_argv(['example', 'alfa', 'beta']), cfg);
+
+  expect(did_run).toBeFalsy();
+  expect(result).toEqual(EXIT_CODE.error);
+  expect(std_output?.mock.calls.map(str => str[0].toString())).toEqual([
+    '\'alfa\' is not a example command. See \'example help\' for a list of available commands.\n',
+    '\n',
+    'Did you mean\n',
+    '  example alpha\n',
+    '\n',
+  ]);
+});
+it('accepts arguments for a default subcommand', async () => {
+  let did_run = false;
+  
+  const result = await run_command_with_options({
+    subcommands: {
+      alpha: {
+        parameters: 1,
+        action (opts) {
+          expect(opts.arguments).toStrictEqual([ 'beta' ]);
+          return 42;
+        }
+      },
+    },
+    default: 'alpha',
+    action () {
+      did_run = true;
+      // no-op
+    },
+  }, parse_argv(['example', 'alpha', 'beta']), cfg);
+
+  expect(did_run).toBeFalsy();
+  expect(result).toBe(42);
+});
