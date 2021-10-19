@@ -48,7 +48,22 @@ export function print_help(executable: string, command: Command): void {
     terminal.new_line();
   };
 
-  terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options] [command]`}`);
+  if (command.subcommands) {
+    terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options] [command]`}`);
+  } else {
+    const max_parameters = command.parameters ?? 0;
+    if (max_parameters === Infinity) {
+      terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options] [...arguments]`}`);
+    } else if (max_parameters > 0) {
+      const parameters = [];
+      for (let i = 0; i < max_parameters; i += 1) {
+        parameters.push(` [arg${i + 1}]`);
+      }
+      terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options]${parameters.join('')}`}`);
+    } else {
+      terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options]`}`);
+    }
+  }
   terminal.new_line();
 
   // NOTE this used to be optional based on if examples existed

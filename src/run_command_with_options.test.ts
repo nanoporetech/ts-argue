@@ -1,4 +1,5 @@
 import { parse_argv } from './Argv';
+import { EXIT_CODE } from './exit_code.constants';
 import { run_command_with_options } from './run_command_with_options';
 import * as style from './style';
 
@@ -19,6 +20,7 @@ it('execute subcommand', async () => {
   const result = await run_command_with_options({
     subcommands: {
       test: {
+        parameters: 1,
         action ({ arguments: args}) {
           expect(args).toEqual(['data']);
           did_run = true;
@@ -31,12 +33,12 @@ it('execute subcommand', async () => {
 });
 it('execute help subcommand', async () => {
   const result = await run_command_with_options({}, parse_argv(['example', 'help']), cfg);
-  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`);
+  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example ${style.dim`[options]`}\n`);
   expect(result).toEqual(0);
 });
 it('execute help option', async () => {
   const result = await run_command_with_options({}, parse_argv(['example', '--help']), cfg);
-  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`);
+  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example ${style.dim`[options]`}\n`);
   expect(result).toEqual(0);
 });
 it('help of subcommand preferred', async () => {
@@ -45,7 +47,7 @@ it('help of subcommand preferred', async () => {
       sub: {}
     }
   }, parse_argv(['example', 'sub', 'help']), cfg);
-  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example sub ${style.dim`[options] [command]`}\n`);
+  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example sub ${style.dim`[options]`}\n`);
   expect(result).toEqual(0);
 });
 it('execute version subcommand', async () => {
@@ -63,6 +65,7 @@ it('execute default subcommand', async () => {
   const result = await run_command_with_options({
     subcommands: {
       list: {
+        parameters: 1,
         action ({ arguments: args}) {
           expect(args).toEqual([ 'arg' ]);
           did_run = true;
@@ -81,6 +84,7 @@ it('execute default subcommand', async () => {
 });
 it('returns default exit code for successful action', async () => {
   const result = await run_command_with_options({
+    parameters: 1,
     action() {
       // no-op
     }
@@ -89,6 +93,7 @@ it('returns default exit code for successful action', async () => {
 });
 it('returns custom exit code for successful action', async () => {
   const result = await run_command_with_options({
+    parameters: Infinity,
     action() {
       return 42;
     }
@@ -136,6 +141,55 @@ it('handles a misspelt subcommand', async () => {
 });
 it('default help execution', async () => {
   const result = await run_command_with_options({}, parse_argv(['example']), cfg);
-  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`);
+  expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example ${style.dim`[options]`}\n`);
   expect(result).toEqual(0);
+});
+it('validates command arity', async () => {
+  let did_run = false;
+  const result = await run_command_with_options({
+    action () {
+      did_run = true;
+      // no-op
+    },
+    parameters: 1,
+  }, parse_argv(['example', 'arg1', 'arg2']), cfg);
+
+  expect(did_run).toBeFalsy();
+  expect(result).toEqual(EXIT_CODE.error);
+  expect(std_output?.mock.calls[0][0]).toEqual(`${style.font_color.red`error`} - ${style.bold`example`} expects up to 1 arguments but received 2.\n`);
+});
+it('accepts 0 arguments by default', async () => {
+  let did_run = false;
+  const result = await run_command_with_options({
+    action () {
+      did_run = true;
+      // no-op
+    },
+  }, parse_argv(['example', 'arg1']), cfg);
+
+  expect(did_run).toBeFalsy();
+  expect(result).toEqual(EXIT_CODE.error);
+  expect(std_output?.mock.calls[0][0]).toEqual(`${style.font_color.red`error`} - ${style.bold`example`} expects up to 0 arguments but received 1.\n`);
+});
+it('suggests a subcommand if subcommands are defined and there are too many arguments', async () => {
+  let did_run = false;
+  const result = await run_command_with_options({
+    subcommands: {
+      alpha: {},
+    },
+    action () {
+      did_run = true;
+      // no-op
+    },
+  }, parse_argv(['example', 'alfa']), cfg);
+
+  expect(did_run).toBeFalsy();
+  expect(result).toEqual(EXIT_CODE.error);
+  expect(std_output?.mock.calls.map(str => str[0].toString())).toEqual([
+    '\'alfa\' is not a example command. See \'example help\' for a list of available commands.\n',
+    '\n',
+    'Did you mean\n',
+    '  example alpha\n',
+    '\n',
+  ]);
 });
