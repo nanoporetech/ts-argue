@@ -239,3 +239,32 @@ it('accepts arguments for a default subcommand', async () => {
   expect(did_run).toBeFalsy();
   expect(result).toBe(42);
 });
+it('strict_options reject extra options', async () => {
+  const result = await run_command_with_options({
+    action() {
+      // no-op
+    }
+  }, parse_argv(['example', '--flag']), {
+    ...cfg,
+    strict_options: true,
+  });
+  expect(result).toEqual(1);
+  expect(std_output?.mock.calls).toEqual([
+    [`${style.font_color.red`error`} - Unrecognised option --flag\n`],
+    ['\n']
+  ]);
+});
+it('strict_options accepts defined options', async () => {
+  const result = await run_command_with_options({
+    action() {
+      return 42;
+    },
+    options: {
+      flag: 'some option'
+    }
+  }, parse_argv(['example', '--flag']), {
+    ...cfg,
+    strict_options: true,
+  });
+  expect(result).toEqual(42);
+});

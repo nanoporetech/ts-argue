@@ -11,6 +11,8 @@ import { nice_executable_name, read_boolean_option, remove_executable, rename_ex
 import { EXIT_CODE } from './exit_code.constants';
 import { terminal } from './Terminal';
 import { bold, font_color } from './style';
+import { validate_options } from './validate_options';
+
 import util from 'util';
 
 export async function run_command_with_options (command: Command, opts: Argv, cfg: Configuration): Promise<number | void> {
@@ -72,6 +74,9 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
     }
 
     try {
+      if (cfg.strict_options) {
+        validate_options(command, child_options);
+      }
       return await command.action(child_options);
     } catch (err) {
       if (err instanceof Error) {
