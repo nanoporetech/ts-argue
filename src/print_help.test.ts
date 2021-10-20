@@ -15,7 +15,52 @@ it('prints usage + inbuilt options/commands with stub', () => {
   assertDefined(std_output);
   print_help('example', {});
   expect(std_output.mock.calls.map(([str]) => str)).toEqual([
+    `${style.bold`USAGE:`} example ${style.dim`[options]`}\n`,
+    '\n',
+    style.bold('COMMANDS:') + '\n',
+    `  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
+    '\n',
+    style.bold('OPTIONS:') + '\n',
+    `  --help    ${style.dim('Output usage information')}\n  --version ${style.dim('Output the version number')}\n`,
+    '\n',
+  ]);
+});
+
+it('prints "command" in usage if subcommands are present', () => {
+  assertDefined(std_output);
+  print_help('example', { subcommands: {} });
+  expect(std_output.mock.calls.map(([str]) => str)).toEqual([
     `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
+    '\n',
+    style.bold('COMMANDS:') + '\n',
+    `  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
+    '\n',
+    style.bold('OPTIONS:') + '\n',
+    `  --help    ${style.dim('Output usage information')}\n  --version ${style.dim('Output the version number')}\n`,
+    '\n',
+  ]);
+});
+
+it('prints "[...arguments]" in usage if Infinite params are specified', () => {
+  assertDefined(std_output);
+  print_help('example', { parameters: Infinity });
+  expect(std_output.mock.calls.map(([str]) => str)).toEqual([
+    `${style.bold`USAGE:`} example ${style.dim`[options] [...arguments]`}\n`,
+    '\n',
+    style.bold('COMMANDS:') + '\n',
+    `  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
+    '\n',
+    style.bold('OPTIONS:') + '\n',
+    `  --help    ${style.dim('Output usage information')}\n  --version ${style.dim('Output the version number')}\n`,
+    '\n',
+  ]);
+});
+
+it('prints individual args in usage if parameters are specified', () => {
+  assertDefined(std_output);
+  print_help('example', { parameters: 3 });
+  expect(std_output.mock.calls.map(([str]) => str)).toEqual([
+    `${style.bold`USAGE:`} example ${style.dim`[options]${' [arg1] [arg2] [arg3]'}`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
     `  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
@@ -64,7 +109,7 @@ it('prints description', () => {
   expect(std_output.mock.calls.map(([str]) => str)).toEqual([
     'something about example\n',
     '\n',
-    `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
+    `${style.bold`USAGE:`} example ${style.dim`[options]`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
     `  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
@@ -85,7 +130,7 @@ it('prints examples', () => {
   });
 
   expect(std_output.mock.calls.map(([str]) => str)).toEqual([
-    `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
+    `${style.bold`USAGE:`} example ${style.dim`[options]`}\n`,
     '\n',
     style.bold('EXAMPLES:') + '\n',
     `  ${style.dim`${'example'} ${'two'}`}\n`,
