@@ -3,6 +3,11 @@ import { remove_styles, truncate_styled_string } from './style';
 import { ESC } from './style.constants';
 
 let force_color: string | undefined;
+
+beforeAll(() => {
+  process.env.FORCE_COLOR = '1';
+});
+
 beforeEach(() => {
   force_color = process.env.FORCE_COLOR;
   process.stdout.getColorDepth = () => 2;
@@ -11,6 +16,10 @@ afterEach(() => {
   process.env.FORCE_COLOR = force_color;
   process.stdout.isTTY = false;
   process.stdout.getColorDepth = () => 2;
+});
+
+afterAll(() => {
+  delete process.env.FORCE_COLOR;
 });
 
 it('style produces a StyleTag function for a given prefix/suffix', () => {
