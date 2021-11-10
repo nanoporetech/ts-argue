@@ -1,12 +1,15 @@
 import type { Color, StyleTag } from './style.type';
 
 import { BACKGROUND_COLORS, ESC, FONT_COLORS, MODIFIERS, POP_CODES, PUSH_CODES } from './style.constants';
-import { asDefined, asString } from 'ts-runtime-typecheck';
+import { asDefined, asString, Dictionary, isDefined } from 'ts-runtime-typecheck';
 
 export function style (pre: string, post: string): StyleTag {
   const prefix = ESC + pre + 'm';
   const postfix = ESC + post + 'm';
   return (template: TemplateStringsArray | string, ...values: string[]) => {
+    if(!supports_color()) {
+      return null_style(template, values);
+    }
     if (typeof template === 'string') {
       return prefix + template + postfix;
     }
@@ -14,12 +17,33 @@ export function style (pre: string, post: string): StyleTag {
 		
     results.push(prefix);
     let i = 0;
-    for (let l = template.length - 1; i < l; i += 1) {
+    for (let l = values.length; i < l; i += 1) {
       results.push(template[i], values[i], prefix);
     }
     results.push(template[i], postfix);
     return results.join('');
   };
+}
+
+export function null_style (template: TemplateStringsArray | string, values: string[]): string {
+  if (typeof template === 'string') {
+    return template;
+  }
+  const results = [];
+		
+  let i = 0;
+  for (let l = values.length; i < l; i += 1) {
+    results.push(template[i], values[i]);
+  }
+  results.push(template[i]);
+  return results.join('');
+}
+
+export function supports_color(env: Dictionary<string | undefined> = process.env): boolean {
+  if (isDefined(env.FORCE_COLOR)) {
+    return env.FORCE_COLOR !== '0'; 
+  }
+  return process.stdout.isTTY ? process.stdout.getColorDepth() >= 4 : false; // 1, 4, 8 or 24 bit depth ( 1 is no colors )
 }
 
 export function remove_styles(str: string): string {
