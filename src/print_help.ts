@@ -10,11 +10,24 @@ export function print_help(executable: string, command: Command): void {
     ['help', 'Display help'],
     ['version', 'Display version'],
   ]);
-  const options = new Map([
-    ['help', 'Output usage information'],
-    ['version', 'Output the version number'],
-  ]);
+  const options = new Map<string, string>([]);
   const exe_name = nice_executable_name(executable);
+
+  const reverse_alias_lookup = new Map<string, string[]>([
+    ['help', ['h']],
+    ['version', ['v']],
+  ]);
+
+  if (command.aliases) {
+    for (const [alias, option] of Object.entries(command.aliases)) {
+      let set = reverse_alias_lookup.get(option);
+      if (!set) {
+        set = [];
+        reverse_alias_lookup.set(option, set);
+      }
+      set.push(alias);
+    }
+  }
 
   // NOTE user specified commands have a higher precedence than the builtins
   // defined above, hence we allow these to override the builtins
@@ -26,12 +39,22 @@ export function print_help(executable: string, command: Command): void {
     }
   }
 
-  longest_name = Math.max(longest_name, 9);
-  if (command.options) {
-    for (const [ option, description ] of Object.entries(command.options)) {
-      options.set(option, description);
-      longest_name = Math.max(option.length + 2, longest_name);
-    }
+  // TODO this probably doesn't do the right thing if a
+  // user tries to override default option descriptions
+  const sorted_option_list = [
+    ['help', 'Output usage information'],
+    ['version', 'Output the version number'],
+    ...Object.entries(command.options ?? []),
+  ].sort((a, b) => a[0] > b[0] ? 1 : -1);
+
+  for (const [ option, description ] of sorted_option_list) {
+    // construct the label from a list of aliases for the option
+    const aliases = reverse_alias_lookup.get(option) ?? [];
+    aliases.push(option);
+    // change the prefix based on the alias length
+    const label = aliases.map(a => a.length === 1 ? `-${a}` : `--${a}`).join(', ');
+    options.set(label, description);
+    longest_name = Math.max(label.length, longest_name);
   }
 
   if (command.description) {
@@ -85,11 +108,9 @@ export function print_help(executable: string, command: Command): void {
   end_group();
 
   start_group('options');
-  // NOTE we want to alphabetically sort and format the subcommands into something nice
   terminal.print_lines(
     Array.from(options)
-      .sort((a, b) => a[0] > b[0] ? 1 : -1)
-      .map(([name, description]) => `${`--${name}`.padEnd(longest_name)} ${style.dim(description)}`)
+      .map(([name, description]) => `${`${name}`.padEnd(longest_name)} ${style.dim(description)}`)
   );
   end_group();
 }

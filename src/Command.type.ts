@@ -8,5 +8,6 @@ export interface Command {
   default?: string;
   examples?: string[];
   parameters?: number;
+  aliases?: Dictionary<string>
   action?: (opts: Argv) => Promise<void | number> | number | void;
 }

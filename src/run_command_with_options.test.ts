@@ -82,6 +82,20 @@ it('execute default subcommand', async () => {
     default: 'list',
   }, parse_argv(['example']), cfg)).rejects.toThrow('Implementation fault: default command list does not exist as a subcommand of example.');
 });
+it('resolves aliases for command', async () => {
+  const result = await run_command_with_options({
+    aliases: {
+      a: 'alpha'
+    },
+    options: {
+      alpha: 'an option',
+    },
+    action(opts) {
+      expect(opts.options.has('alpha')).toBeTruthy();
+    }
+  }, parse_argv(['example', '-a']), cfg);
+  expect(result).toEqual(undefined);
+});
 it('returns default exit code for successful action', async () => {
   const result = await run_command_with_options({
     parameters: 1,

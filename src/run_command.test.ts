@@ -1,6 +1,6 @@
 import { assertDefined } from 'ts-runtime-typecheck';
 import { run_command } from './run_command';
-import { bold } from './style';
+import { bold, dim } from './style';
 
 const exit = new Error('not a real error');
 
@@ -122,4 +122,25 @@ it('renames the root executable if specified in configuration', async () => {
     // test throws harmless error instead of calling process.exit
   }
   expect(std_output?.mock.calls[0][0]).toEqual(`${bold`special`} version 1\n`);
+});
+
+it('execute v option', async () => {
+  // use the version option to print the executable name
+  process.argv = ['node', 'example', '-v'];
+  try {
+    await run_command({}, { version: '1', name: 'special' });
+  } catch {
+    // test throws harmless error instead of calling process.exit
+  }
+  expect(std_output?.mock.calls[0][0]).toEqual(bold`special` + ' version 1\n');
+});
+
+it('execute h option', async () => {
+  process.argv = ['node', 'example', '-h'];
+  try {
+    await run_command({}, { version: '1', name: 'special' });
+  } catch {
+    // test throws harmless error instead of calling process.exit
+  }
+  expect(std_output?.mock.calls[0][0]).toEqual(`${bold`USAGE:`} special ${dim`[options]`}\n`);
 });
