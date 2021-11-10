@@ -2,9 +2,44 @@ import * as style from './style';
 import { remove_styles, truncate_styled_string } from './style';
 import { ESC } from './style.constants';
 
+let force_color: string | undefined;
+beforeEach(() => {
+  force_color = process.env.FORCE_COLOR;
+  process.stdout.getColorDepth = () => 2;
+});
+afterEach(() => {
+  process.env.FORCE_COLOR = force_color;
+  process.stdout.isTTY = false;
+  process.stdout.getColorDepth = () => 2;
+});
+
 it('style produces a StyleTag function for a given prefix/suffix', () => {
   expect(style.style('1', '0')('hello world')).toEqual('\u001b[1mhello world\u001b[0m');
   expect(style.style('1', '0')`hello ${'lucky winner'}`).toEqual('\u001b[1mhello lucky winner\u001b[1m\u001b[0m');
+});
+it('support_color', () => {
+  process.env.FORCE_COLOR = '0';
+  expect(style.supports_color()).toBeFalsy();
+  process.env.FORCE_COLOR = 'nonsense';
+  expect(style.supports_color()).toBeTruthy();
+  process.env.FORCE_COLOR = '';
+  expect(style.supports_color()).toBeTruthy();
+  process.env.FORCE_COLOR = '1';
+  expect(style.supports_color()).toBeTruthy();
+  delete process.env.FORCE_COLOR;
+  expect(style.supports_color()).toBe(!!process.stdout.isTTY); // test script is always run in a non TTY mode, assume that if it's TTY then we have color here
+  process.stdout.isTTY = true;
+  expect(style.supports_color()).toBeFalsy();
+  process.stdout.getColorDepth = () => 4;
+  expect(style.supports_color()).toBeTruthy();
+});
+it('styles are disabled if color is not supported', () => {
+  process.env.FORCE_COLOR = '0';
+  expect(style.dim('example')).toEqual('example');
+  expect(style.dim`Hello ${ 'world' }`).toEqual('Hello world');
+  process.env.FORCE_COLOR = '1';
+  expect(style.dim('example')).toEqual('\u001b[2mexample\u001b[22m');
+  expect(style.dim`Hello ${ 'world' }`).toEqual('\u001b[2mHello world\u001b[2m\u001b[22m');
 });
 it('dim', () => {
   expect(style.dim('example')).toEqual('\u001b[2mexample\u001b[22m');
