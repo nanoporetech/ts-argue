@@ -18,10 +18,10 @@ it('prints usage + inbuilt options/commands with stub', () => {
     `${style.bold`USAGE:`} example ${style.dim`[options]`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
-    `  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
+    `  help          ${style.dim('Display help')}\n  version       ${style.dim('Display version')}\n`,
     '\n',
     style.bold('OPTIONS:') + '\n',
-    `  --help    ${style.dim('Output usage information')}\n  --version ${style.dim('Output the version number')}\n`,
+    `  -h, --help    ${style.dim('Output usage information')}\n  -v, --version ${style.dim('Output the version number')}\n`,
     '\n',
   ]);
 });
@@ -33,10 +33,10 @@ it('prints "command" in usage if subcommands are present', () => {
     `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
-    `  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
+    `  help          ${style.dim('Display help')}\n  version       ${style.dim('Display version')}\n`,
     '\n',
     style.bold('OPTIONS:') + '\n',
-    `  --help    ${style.dim('Output usage information')}\n  --version ${style.dim('Output the version number')}\n`,
+    `  -h, --help    ${style.dim('Output usage information')}\n  -v, --version ${style.dim('Output the version number')}\n`,
     '\n',
   ]);
 });
@@ -48,10 +48,10 @@ it('prints "[...arguments]" in usage if Infinite params are specified', () => {
     `${style.bold`USAGE:`} example ${style.dim`[options] [...arguments]`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
-    `  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
+    `  help          ${style.dim('Display help')}\n  version       ${style.dim('Display version')}\n`,
     '\n',
     style.bold('OPTIONS:') + '\n',
-    `  --help    ${style.dim('Output usage information')}\n  --version ${style.dim('Output the version number')}\n`,
+    `  -h, --help    ${style.dim('Output usage information')}\n  -v, --version ${style.dim('Output the version number')}\n`,
     '\n',
   ]);
 });
@@ -63,10 +63,10 @@ it('prints individual args in usage if parameters are specified', () => {
     `${style.bold`USAGE:`} example ${style.dim`[options]${' [arg1] [arg2] [arg3]'}`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
-    `  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
+    `  help          ${style.dim('Display help')}\n  version       ${style.dim('Display version')}\n`,
     '\n',
     style.bold('OPTIONS:') + '\n',
-    `  --help    ${style.dim('Output usage information')}\n  --version ${style.dim('Output the version number')}\n`,
+    `  -h, --help    ${style.dim('Output usage information')}\n  -v, --version ${style.dim('Output the version number')}\n`,
     '\n',
   ]);
 });
@@ -83,6 +83,10 @@ it('prints custom options/commands', () => {
         description: ''
       }
     },
+    aliases: {
+      z: 'zebra',
+      zeb: 'zebra'
+    },
     options: {
       zebra: '',
       deactivate: 'an option perhaps',
@@ -93,10 +97,10 @@ it('prints custom options/commands', () => {
     `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
-    `  alpha        ${style.dim('this is description')}\n  beta         ${style.dim('')}\n  help         ${style.dim('Display help')}\n  index        ${style.dim('')}\n  version      ${style.dim('Display version')}\n`,
+    `  alpha              ${style.dim('this is description')}\n  beta               ${style.dim('')}\n  help               ${style.dim('Display help')}\n  index              ${style.dim('')}\n  version            ${style.dim('Display version')}\n`,
     '\n',
     style.bold('OPTIONS:') + '\n',
-    `  --deactivate ${style.dim('an option perhaps')}\n  --eel        ${style.dim('slimy')}\n  --help       ${style.dim('Output usage information')}\n  --version    ${style.dim('Output the version number')}\n  --zebra      ${style.dim('')}\n`,
+    `  --deactivate       ${style.dim('an option perhaps')}\n  --eel              ${style.dim('slimy')}\n  -h, --help         ${style.dim('Output usage information')}\n  -v, --version      ${style.dim('Output the version number')}\n  -z, --zeb, --zebra ${style.dim('')}\n`,
     '\n',
   ]);
 });
@@ -112,10 +116,10 @@ it('prints description', () => {
     `${style.bold`USAGE:`} example ${style.dim`[options]`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
-    `  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
+    `  help          ${style.dim('Display help')}\n  version       ${style.dim('Display version')}\n`,
     '\n',
     style.bold('OPTIONS:') + '\n',
-    `  --help    ${style.dim('Output usage information')}\n  --version ${style.dim('Output the version number')}\n`,
+    `  -h, --help    ${style.dim('Output usage information')}\n  -v, --version ${style.dim('Output the version number')}\n`,
     '\n',
   ]);
 });
@@ -137,10 +141,10 @@ it('prints examples', () => {
     `  ${style.dim`${'example'} ${'one'}`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
-    `  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
+    `  help          ${style.dim('Display help')}\n  version       ${style.dim('Display version')}\n`,
     '\n',
     style.bold('OPTIONS:') + '\n',
-    `  --help    ${style.dim('Output usage information')}\n  --version ${style.dim('Output the version number')}\n`,
+    `  -h, --help    ${style.dim('Output usage information')}\n  -v, --version ${style.dim('Output the version number')}\n`,
     '\n',
   ]);
 });
@@ -162,10 +166,10 @@ it('prints automatic examples', () => {
     `  ${style.dim`${'example b'}`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
-    `  a         ${style.dim('')}\n  b         ${style.dim('')}\n  help      ${style.dim('Display help')}\n  version   ${style.dim('Display version')}\n`,
+    `  a             ${style.dim('')}\n  b             ${style.dim('')}\n  help          ${style.dim('Display help')}\n  version       ${style.dim('Display version')}\n`,
     '\n',
     style.bold('OPTIONS:') + '\n',
-    `  --help    ${style.dim('Output usage information')}\n  --version ${style.dim('Output the version number')}\n`,
+    `  -h, --help    ${style.dim('Output usage information')}\n  -v, --version ${style.dim('Output the version number')}\n`,
     '\n',
   ]);
 });

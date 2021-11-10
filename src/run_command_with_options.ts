@@ -7,7 +7,7 @@ import { basename } from 'path';
 import { print_did_you_mean } from './print_did_you_mean';
 import { print_help } from './print_help';
 import { print_version } from './print_version';
-import { nice_executable_name, read_boolean_option, remove_executable, rename_executable, rename_executable_and_remove_subcommmand, root_executable } from './Argv';
+import { nice_executable_name, read_boolean_option, remove_executable, rename_executable, rename_executable_and_remove_subcommmand, resolve_aliases, root_executable } from './Argv';
 import { EXIT_CODE } from './exit_code.constants';
 import { terminal } from './Terminal';
 import { bold, font_color } from './style';
@@ -74,10 +74,11 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
     }
 
     try {
+      const expanded_options = command.aliases ? resolve_aliases(child_options, command.aliases) : child_options;
       if (cfg.strict_options) {
-        validate_options(command, child_options);
+        validate_options(command, expanded_options);
       }
-      return await command.action(child_options);
+      return await command.action(expanded_options);
     } catch (err) {
       if (err instanceof Error) {
         terminal.print_line(`${font_color.red`error`} - ${err.message}`);
