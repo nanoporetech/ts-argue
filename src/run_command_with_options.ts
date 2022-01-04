@@ -7,7 +7,7 @@ import { basename } from 'path';
 import { print_did_you_mean } from './print_did_you_mean';
 import { print_help } from './print_help';
 import { print_version } from './print_version';
-import { nice_executable_name, read_boolean_option, remove_executable, rename_executable, rename_executable_and_remove_subcommmand, resolve_aliases, root_executable } from './Argv';
+import { remove_executable, rename_executable, rename_executable_and_remove_subcommmand, resolve_aliases, root_executable } from './Argv';
 import { EXIT_CODE } from './exit_code.constants';
 import { terminal } from './Terminal';
 import { bold, font_color } from './style';
@@ -22,16 +22,16 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
 
   // NOTE if we have a subcommand then call that with the adjusted argv
   if (subcommand) {
-    const child_options = rename_executable_and_remove_subcommmand(opts, `${executable}-${subcommand_name}`);
+    const child_options = rename_executable_and_remove_subcommmand(opts, `${executable} ${subcommand_name}`);
     return run_command_with_options(subcommand, child_options, cfg);
   }
 
-  if (subcommand_name === 'help' || read_boolean_option(opts, 'help')) {
+  if (subcommand_name === 'help' || opts.bool('help')) {
     print_help(executable, command);
     return EXIT_CODE.ok;
   }
 
-  if (subcommand_name === 'version' || read_boolean_option(opts, 'version')) {
+  if (subcommand_name === 'version' || opts.bool('version')) {
     print_version(root_executable(executable), cfg);
     return EXIT_CODE.ok;
   }
@@ -51,7 +51,7 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
       return EXIT_CODE.error;
     }
 
-    const child_options = rename_executable(opts, `${executable}-${command.default}`);
+    const child_options = rename_executable(opts, `${executable} ${command.default}`);
     return run_command_with_options(subcommand, child_options, cfg);
   }
 
@@ -66,8 +66,8 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
         print_did_you_mean(command, executable, subcommand_name);
       } else {
         terminal
-          .print_line(`${font_color.red`error`} - ${bold(nice_executable_name(executable))} expects up to ${max_parameters} arguments but received ${argument_count}.`)
-          .new_line();
+          .print_line(`${font_color.red`error`} - ${bold(executable)} expects up to ${max_parameters} arguments but received ${argument_count}.`, 'stderr')
+          .new_line('stderr');
       }
       
       return EXIT_CODE.error;
@@ -80,12 +80,8 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
       }
       return await command.action(expanded_options);
     } catch (err) {
-      if (err instanceof Error) {
-        terminal.print_line(`${font_color.red`error`} - ${err.message}`);
-      } else {
-        terminal.print_line(`${font_color.red`error`} - ${util.inspect(err)}`);
-      }
-      terminal.new_line();
+      const message = err instanceof Error ? err.message : util.inspect(err);
+      terminal.print_line(`${font_color.red`error`} - ${message}`, 'stderr').new_line('stderr');
       return EXIT_CODE.error;
     }
   }

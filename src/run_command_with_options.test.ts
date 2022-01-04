@@ -6,13 +6,15 @@ import * as style from './style';
 const cfg = { version: '1' };
 
 let std_output: jest.SpiedFunction<typeof process.stdout.write> | null = null;
+let std_error: jest.SpiedFunction<typeof process.stderr.write> | null = null;
 
 beforeEach(() => {
   std_output = jest.spyOn(process.stdout, 'write');
+  std_error = jest.spyOn(process.stderr, 'write');
 });
 afterEach(() => {
   std_output && std_output.mockRestore();
-  std_output = null;
+  std_error && std_error.mockRestore();
 });
 
 it('execute subcommand', async () => {
@@ -121,7 +123,7 @@ it('handles a thrown error in an action', async () => {
     }
   }, parse_argv(['example']), cfg);
   expect(result).toEqual(1);
-  expect(std_output?.mock.calls).toEqual([
+  expect(std_error?.mock.calls).toEqual([
     [`${style.font_color.red`error`} - BANG\n`],
     ['\n']
   ]);
@@ -133,7 +135,7 @@ it('handles a thrown value in an action', async () => {
     }
   }, parse_argv(['example']), cfg);
   expect(result).toEqual(1);
-  expect(std_output?.mock.calls).toEqual([
+  expect(std_error?.mock.calls).toEqual([
     [`${style.font_color.red`error`} - 'BANG'\n`],
     ['\n']
   ]);
@@ -145,7 +147,7 @@ it('handles a misspelt subcommand', async () => {
     },
   }, parse_argv(['example', 'lost']), cfg);
   expect(result).toEqual(1);
-  expect(std_output?.mock.calls.map(str => str[0].toString())).toEqual([
+  expect(std_error?.mock.calls.map(str => str[0].toString())).toEqual([
     '\'lost\' is not a example command. See \'example help\' for a list of available commands.\n',
     '\n',
     'Did you mean\n',
@@ -170,7 +172,7 @@ it('validates command arity', async () => {
 
   expect(did_run).toBeFalsy();
   expect(result).toEqual(EXIT_CODE.error);
-  expect(std_output?.mock.calls[0][0]).toEqual(`${style.font_color.red`error`} - ${style.bold`example`} expects up to 1 arguments but received 2.\n`);
+  expect(std_error?.mock.calls[0][0]).toEqual(`${style.font_color.red`error`} - ${style.bold`example`} expects up to 1 arguments but received 2.\n`);
 });
 it('accepts 0 arguments by default', async () => {
   let did_run = false;
@@ -183,7 +185,7 @@ it('accepts 0 arguments by default', async () => {
 
   expect(did_run).toBeFalsy();
   expect(result).toEqual(EXIT_CODE.error);
-  expect(std_output?.mock.calls[0][0]).toEqual(`${style.font_color.red`error`} - ${style.bold`example`} expects up to 0 arguments but received 1.\n`);
+  expect(std_error?.mock.calls[0][0]).toEqual(`${style.font_color.red`error`} - ${style.bold`example`} expects up to 0 arguments but received 1.\n`);
 });
 it('suggests a subcommand if subcommands are defined and there are too many arguments', async () => {
   let did_run = false;
@@ -199,7 +201,7 @@ it('suggests a subcommand if subcommands are defined and there are too many argu
 
   expect(did_run).toBeFalsy();
   expect(result).toEqual(EXIT_CODE.error);
-  expect(std_output?.mock.calls.map(str => str[0].toString())).toEqual([
+  expect(std_error?.mock.calls.map(str => str[0].toString())).toEqual([
     '\'alfa\' is not a example command. See \'example help\' for a list of available commands.\n',
     '\n',
     'Did you mean\n',
@@ -222,7 +224,7 @@ it('suggests a subcommand if subcommands are defined and there are too many argu
 
   expect(did_run).toBeFalsy();
   expect(result).toEqual(EXIT_CODE.error);
-  expect(std_output?.mock.calls.map(str => str[0].toString())).toEqual([
+  expect(std_error?.mock.calls.map(str => str[0].toString())).toEqual([
     '\'alfa\' is not a example command. See \'example help\' for a list of available commands.\n',
     '\n',
     'Did you mean\n',
@@ -263,7 +265,7 @@ it('strict_options reject extra options', async () => {
     strict_options: true,
   });
   expect(result).toEqual(1);
-  expect(std_output?.mock.calls).toEqual([
+  expect(std_error?.mock.calls).toEqual([
     [`${style.font_color.red`error`} - Unrecognised option --flag\n`],
     ['\n']
   ]);

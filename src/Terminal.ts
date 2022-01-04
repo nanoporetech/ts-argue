@@ -1,6 +1,7 @@
 import * as style from './style';
 import { prompt } from 'enquirer';
 import { EXIT_CODE } from './exit_code.constants';
+import { asUnion, isLiteral } from 'ts-runtime-typecheck';
 
 const INDENT_SIZE = 2;
 const BLOCK_CHARS = [
@@ -14,6 +15,8 @@ const BLOCK_CHARS = [
   '▉',
   '█',
 ];
+const AS_MODE = asUnion(isLiteral('stdout'), isLiteral('stderr'));
+
 export class Terminal {
   private indent = 0;
   private dirty_line: symbol | null = null;
@@ -63,11 +66,11 @@ export class Terminal {
     }
   }
 
-  print_line(line: string): this {
+  print_line(line: string, mode: 'stdout' | 'stderr' = 'stdout'): this {
     if (this.dirty_line) {
       this.dirty_line = null;
     }
-    process.stdout.write(
+    process[AS_MODE(mode)].write(
       line.split('\n')
         .map(sub_line => ' '.repeat(this.indent) + sub_line + '\n')
         .join('')
@@ -76,8 +79,8 @@ export class Terminal {
     return this;
   }
 
-  print_lines(lines: string[]): this {
-    return this.print_line(lines.join('\n'));
+  print_lines(lines: string[], mode: 'stdout' | 'stderr' = 'stdout'): this {
+    return this.print_line(lines.join('\n'), mode);
   }
 
   reusable_block(): (...lines: string[]) => void {
@@ -221,8 +224,8 @@ export class Terminal {
     return this;
   }
 
-  new_line(): this {
-    process.stdout.write('\n');
+  new_line(mode: 'stderr' | 'stdout' = 'stdout'): this {
+    process[AS_MODE(mode)].write('\n');
     this.dirty_line = null;
     return this;
   }

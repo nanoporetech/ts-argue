@@ -1,9 +1,9 @@
-import type { Argv } from './Argv.type';
+import type { SimpleArgv } from './Argv.type';
 
-import { nice_executable_name, parse_argv, read_boolean_option, read_numerical_array_option, read_numerical_option, read_string_array_option, read_string_option, remove_executable, rename_executable, rename_executable_and_remove_subcommmand, resolve_aliases, root_executable } from './Argv';
+import { ArgvImpl, parse_argv, read_boolean_option, read_numerical_array_option, read_numerical_option, read_string_array_option, read_string_option, remove_executable, rename_executable, rename_executable_and_remove_subcommmand, resolve_aliases, root_executable } from './Argv';
 
 it('rename_executable', () => {
-  const source: Argv = {
+  const source: SimpleArgv = {
     options: new Map,
     arguments: ['cake', 'vanilla'],
   };
@@ -11,21 +11,18 @@ it('rename_executable', () => {
   expect(result.arguments).toEqual([ 'flapjack', 'vanilla' ]);
 });
 it('root_executable', () => {
-  expect(root_executable('cake-vanilla-sponge')).toEqual('cake');
-});
-it('nice_executable_name', () => {
-  expect(nice_executable_name('cake-vanilla-sponge')).toEqual('cake vanilla sponge');
+  expect(root_executable('cake vanilla sponge')).toEqual('cake');
 });
 it('rename_executable_and_remove_subcommmand', () => {
-  const source: Argv = {
+  const source: SimpleArgv = {
     options: new Map,
     arguments: ['cake', 'vanilla'],
   };
-  const result = rename_executable_and_remove_subcommmand(source, 'cake-vanilla');
-  expect(result.arguments).toEqual([ 'cake-vanilla' ]);
+  const result = rename_executable_and_remove_subcommmand(source, 'cake vanilla');
+  expect(result.arguments).toEqual([ 'cake vanilla' ]);
 });
 it('remove_executable', () => {
-  const source: Argv = {
+  const source: SimpleArgv = {
     options: new Map,
     arguments: ['cake', 'vanilla'],
   };
@@ -33,7 +30,7 @@ it('remove_executable', () => {
   expect(result.arguments).toEqual([ 'vanilla' ]);
 });
 it('resolve_aliases', () => {
-  const source: Argv = {
+  const source: SimpleArgv = {
     options: new Map([
       ['a', ['1', '2', '4']],
       ['b', ['hello']],
@@ -81,7 +78,86 @@ describe('parse_argv', () => {
   });
 });
 describe('read_option', () => {
-  const source: Argv = {
+  const source = new ArgvImpl({
+    opts: new Map,
+    args: [],
+  });
+  source.options.set('a', ['yes']);
+  source.options.set('b', ['no']);
+  source.options.set('c', ['true']);
+  source.options.set('d', ['false']);
+  source.options.set('e', ['12']);
+  source.options.set('f', ['ye']);
+  source.options.set('g', ['4four']);
+  source.options.set('h', ['12', '42']);
+  source.options.set('i', ['hello', 'world']);
+
+  it('bool', () => {
+    expect(source.bool('a')).toEqual(true);
+    expect(source.bool('b')).toEqual(false);
+    expect(source.bool('c')).toEqual(true);
+    expect(source.bool('d')).toEqual(false);
+    expect(() => source.bool('e')).toThrow(`Expected boolean value for option ${'e'} but found ${12}`);
+    expect(() => source.bool('f')).toThrow(`Expected boolean value for option ${'f'} but found ${'ye'}`);
+    expect(() => source.bool('g')).toThrow(`Expected boolean value for option ${'g'} but found ${'4four'}`);
+    expect(() => source.bool('h')).toThrow(`Multiple values given for option ${'h'}`);
+    expect(() => source.bool('i')).toThrow(`Multiple values given for option ${'i'}`);
+    expect(source.bool('missing')).toEqual(null);
+  });
+  it('string', () => {
+    expect(source.string('a')).toEqual('yes');
+    expect(source.string('b')).toEqual('no');
+    expect(source.string('c')).toEqual('true');
+    expect(source.string('d')).toEqual('false');
+    expect(source.string('e')).toEqual('12');
+    expect(source.string('f')).toEqual('ye');
+    expect(source.string('g')).toEqual('4four');
+    expect(() => source.string('h')).toThrow(`Multiple values given for option ${'h'}`);
+    expect(() => source.string('i')).toThrow(`Multiple values given for option ${'i'}`);
+    expect(source.string('missing')).toEqual(null);
+  });
+  it('number', () => {
+    expect(() => source.number('a')).toThrow(`Expected numerical value for option ${'a'} but found ${'yes'}`);
+    expect(() => source.number('b')).toThrow(`Expected numerical value for option ${'b'} but found ${'no'}`);
+    expect(() => source.number('c')).toThrow(`Expected numerical value for option ${'c'} but found ${'true'}`);
+    expect(() => source.number('d')).toThrow(`Expected numerical value for option ${'d'} but found ${'false'}`);
+    expect(source.number('e')).toEqual(12);
+    expect(() => source.number('f')).toThrow(`Expected numerical value for option ${'f'} but found ${'ye'}`);
+    expect(() => source.number('h')).toThrow(`Multiple values given for option ${'h'}`);
+    expect(() => source.number('i')).toThrow(`Multiple values given for option ${'i'}`);
+    expect(() => source.number('g')).toThrow(`Expected numerical value for option ${'g'} but found ${'4four'}`);
+    expect(source.number('missing')).toEqual(null);
+
+  });
+  it('arr_string', () => {
+    expect(source.arr_string('a')).toEqual(['yes']);
+    expect(source.arr_string('b')).toEqual(['no']);
+    expect(source.arr_string('c')).toEqual(['true']);
+    expect(source.arr_string('d')).toEqual(['false']);
+    expect(source.arr_string('e')).toEqual(['12']);
+    expect(source.arr_string('f')).toEqual(['ye']);
+    expect(source.arr_string('g')).toEqual(['4four']);
+    expect(source.arr_string('missing')).toEqual([]);
+    expect(source.arr_string('h')).toEqual(['12', '42']);
+    expect(source.arr_string('i')).toEqual(['hello', 'world']);
+  });
+  it('arr_number', () => {
+    expect(() => source.arr_number('a')).toThrow(`Expected numerical values for option ${'a'} but found ${'yes'}`);
+    expect(() => source.arr_number('b')).toThrow(`Expected numerical values for option ${'b'} but found ${'no'}`);
+    expect(() => source.arr_number('c')).toThrow(`Expected numerical values for option ${'c'} but found ${'true'}`);
+    expect(() => source.arr_number('d')).toThrow(`Expected numerical values for option ${'d'} but found ${'false'}`);
+    expect(source.arr_number('e')).toEqual([12]);
+    expect(() => source.arr_number('f')).toThrow(`Expected numerical values for option ${'f'} but found ${'ye'}`);
+    expect(source.arr_number('h')).toEqual([12, 42]);
+    expect(() => source.arr_number('i')).toThrow(`Expected numerical values for option ${'i'} but found ${'hello'}`);
+    expect(() => source.arr_number('g')).toThrow(`Expected numerical values for option ${'g'} but found ${'4four'}`);
+    expect(source.arr_number('missing')).toEqual([]);
+    expect(source.arr_number('missing')).toEqual([]);
+  });
+});
+
+describe('depreciated read_option', () => {
+  const source: SimpleArgv = {
     options: new Map,
     arguments: [],
   };
@@ -142,8 +218,7 @@ describe('read_option', () => {
     expect(() => read_numerical_array_option(source, 'f')).toThrow(`Expected numerical values for option ${'f'} but found ${'ye'}`);
     expect(read_numerical_array_option(source, 'h')).toEqual([12, 42]);
     expect(() => read_numerical_array_option(source, 'i')).toThrow(`Expected numerical values for option ${'i'} but found ${'hello'}`);
-    // WARN this should throw, but it isn't because of a bug in ts-runtime-typecheck
-    // expect(() => read_numerical_array_option(source, 'g')).toThrow(`Expected numerical values for option ${'g'} but found ${'4four'}`);
+    expect(() => read_numerical_array_option(source, 'g')).toThrow(`Expected numerical values for option ${'g'} but found ${'4four'}`);
     expect(read_numerical_array_option(source, 'missing')).toEqual([]);
     expect(read_numerical_array_option(source, 'missing')).toEqual([]);
   });
@@ -156,8 +231,7 @@ describe('read_option', () => {
     expect(() => read_numerical_option(source, 'f')).toThrow(`Expected numerical value for option ${'f'} but found ${'ye'}`);
     expect(() => read_numerical_option(source, 'h')).toThrow(`Multiple values given for option ${'h'}`);
     expect(() => read_numerical_option(source, 'i')).toThrow(`Multiple values given for option ${'i'}`);
-    // WARN this should throw, but it isn't because of a bug in ts-runtime-typecheck
-    // expect(() => read_numerical_option(source, 'g')).toThrow(`Expected numerical value for option ${'g'} but found ${'4four'}`);
+    expect(() => read_numerical_option(source, 'g')).toThrow(`Expected numerical value for option ${'g'} but found ${'4four'}`);
     expect(read_numerical_option(source, 'missing', 12)).toEqual(12);
     expect(read_numerical_option(source, 'missing', 0)).toEqual(0);
   });

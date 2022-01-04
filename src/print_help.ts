@@ -1,4 +1,3 @@
-import { nice_executable_name } from './Argv';
 import type { Command } from './Command.type';
 import { terminal } from './Terminal';
 
@@ -11,7 +10,6 @@ export function print_help(executable: string, command: Command): void {
     ['version', 'Display version'],
   ]);
   const options = new Map<string, string>([]);
-  const exe_name = nice_executable_name(executable);
 
   const reverse_alias_lookup = new Map<string, string[]>([
     ['help', ['h']],
@@ -72,19 +70,19 @@ export function print_help(executable: string, command: Command): void {
   };
 
   if (command.subcommands) {
-    terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options] [command]`}`);
+    terminal.print_line(`${style.bold`USAGE:`} ${executable} ${style.dim`[options] [command]`}`);
   } else {
     const max_parameters = command.parameters ?? 0;
     if (max_parameters === Infinity) {
-      terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options] [...arguments]`}`);
+      terminal.print_line(`${style.bold`USAGE:`} ${executable} ${style.dim`[options] [...arguments]`}`);
     } else if (max_parameters > 0) {
       const parameters = [];
       for (let i = 0; i < max_parameters; i += 1) {
         parameters.push(` [arg${i + 1}]`);
       }
-      terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options]${parameters.join('')}`}`);
+      terminal.print_line(`${style.bold`USAGE:`} ${executable} ${style.dim`[options]${parameters.join('')}`}`);
     } else {
-      terminal.print_line(`${style.bold`USAGE:`} ${exe_name} ${style.dim`[options]`}`);
+      terminal.print_line(`${style.bold`USAGE:`} ${executable} ${style.dim`[options]`}`);
     }
   }
   terminal.new_line();
@@ -94,7 +92,7 @@ export function print_help(executable: string, command: Command): void {
   // printing. So we now use an helper
   if (will_print_examples(command)) {
     start_group('examples');
-    print_examples(exe_name, command);
+    print_examples(executable, command);
     end_group();
   }
 
