@@ -204,4 +204,6 @@ You can try the above example by downloading this repo, installing the dev depen
 
 ## Project Status
 
-This library has only been used for proof of concepts at the moment, and is not considered complete. It is being developed side by side another project, and the aim is to produce a 1.0.0 release around the time that project is complete.
+This library is being developed side by side another project, and the aim is to produce a 1.0.0 release around the time that project is complete.
+
+At the moment the library is considered effectively feature complete, and we are expecting to release 1.0.0 soon. Some functions are going to be removed in 1.0 but have been replaced with equivalent functionality, as such these functions have been marked as depreciated. A last 0.x release will be published with these functions still enabled but with everything else finalised. Most of the remaining work is based on updating documentation and ensuring the examples use the latest revisions.

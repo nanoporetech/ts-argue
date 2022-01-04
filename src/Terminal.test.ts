@@ -5,6 +5,7 @@ import enquirer from 'enquirer';
 import type { WriteStream as TTYWriteStream } from 'tty';
 
 let std_output: jest.SpiedFunction<typeof process.stdout.write> | null = null;
+let std_error: jest.SpiedFunction<typeof process.stdout.write> | null = null;
 let process_exit: jest.SpiedFunction<typeof process.exit> | null = null;
 let enquirer_prompt: jest.SpiedFunction<typeof enquirer.prompt> | null = null;
 
@@ -26,6 +27,7 @@ beforeEach(() => {
   enquirer_prompt = jest.spyOn(enquirer, 'prompt').mockRejectedValue('mock not implemented');
   process_exit = jest.spyOn(process, 'exit').mockImplementation(() => { throw exit; });
   std_output = jest.spyOn(process.stdout, 'write');
+  std_error = jest.spyOn(process.stderr, 'write');
 
   as_public_terminal(terminal).indent = 0;
   as_public_terminal(terminal).dirty_line = null;
@@ -34,6 +36,7 @@ beforeEach(() => {
 afterEach(() => {
   process.stdout.write('\n');
   std_output && std_output.mockRestore();
+  std_error && std_error.mockRestore();
   process_exit && process_exit.mockRestore();
   enquirer_prompt && enquirer_prompt.mockRestore();
   std_output = null;
@@ -94,6 +97,17 @@ it('print_line clear dirty flag if set', () => {
   ]);
   expect(as_public_terminal(terminal).dirty_line).toBe(null);
 });
+it('print_line outputs to std_err if specified', () => {
+  assertDefined(std_error);
+
+  terminal.increase_indent();
+  terminal.print_line('hello\nworld', 'stderr');
+  terminal.decrease_indent();
+
+  expect(std_error.mock.calls).toEqual([
+    ['  hello\n  world\n'],
+  ]);
+});
 it('print_line corrects indentation when passed multiple lines', () => {
   assertDefined(std_output);
 
@@ -116,6 +130,17 @@ it('print_lines includes indent and newline for each element', () => {
     [ '  hello\n  new\n  world\n' ],
   ]);
 });
+it('print_lines prints to stderr if specified', () => {
+  assertDefined(std_error);
+
+  terminal.increase_indent();
+  terminal.print_lines(['hello','new\nworld'], 'stderr');
+  terminal.decrease_indent();
+
+  expect(std_error.mock.calls).toEqual([
+    [ '  hello\n  new\n  world\n' ],
+  ]);
+});
 it('print_lines clear dirty flag if set', () => {
   assertDefined(std_output);
 
@@ -133,6 +158,16 @@ it('new_line prints a newline character', () => {
   terminal.new_line();
 
   expect(std_output.mock.calls).toEqual([
+    ['\n'],
+  ]);
+});
+
+it('new_line prints to stderr if specified', () => {
+  assertDefined(std_error);
+
+  terminal.new_line('stderr');
+
+  expect(std_error.mock.calls).toEqual([
     ['\n'],
   ]);
 });

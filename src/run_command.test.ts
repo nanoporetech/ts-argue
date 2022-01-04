@@ -18,9 +18,6 @@ afterEach(() => {
   std_output && std_output.mockRestore();
   assertDefined(process_argv);
   process.argv = process_argv;
-  process_argv = null;
-  process_exit = null;
-  std_output = null;
 });
 
 it('sync action custom exit code', async () => {

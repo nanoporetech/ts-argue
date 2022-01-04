@@ -8,7 +8,6 @@ beforeEach(() => {
 });
 afterEach(() => {
   std_output && std_output.mockRestore();
-  std_output = null;
 });
 
 it('prints usage + inbuilt options/commands with stub', () => {

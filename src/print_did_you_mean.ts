@@ -1,13 +1,13 @@
-import { nice_executable_name } from './Argv';
 import type { Command } from './Command.type';
 import { terminal } from './Terminal';
 
 import { nearest_string } from './nearest_string';
 
 export function print_did_you_mean(command: Command, executable: string, subcommand_name: string): void {
-  const exe_name = nice_executable_name(executable);
-  terminal.print_line(`'${subcommand_name}' is not a ${exe_name} command. See '${exe_name} help' for a list of available commands.`);
-  terminal.new_line();
+  terminal
+    .print_line(`'${subcommand_name}' is not a ${executable} command. See '${executable} help' for a list of available commands.`, 'stderr')
+    .new_line('stderr');
+  
   if (!command.subcommands) {
     return;
   }
@@ -18,11 +18,12 @@ export function print_did_you_mean(command: Command, executable: string, subcomm
   }
 
   const closest_command = nearest_string(subcommand_name, subcommand_names);
-  terminal.print_line('Did you mean');
-  terminal.increase_indent();
-  terminal.print_line(`${exe_name} ${closest_command}`);
-  terminal.decrease_indent();
-  terminal.new_line();
+  terminal
+    .print_line('Did you mean', 'stderr')
+    .increase_indent()
+    .print_line(`${executable} ${closest_command}`, 'stderr')
+    .decrease_indent()
+    .new_line('stderr');
 
   return;
 }
