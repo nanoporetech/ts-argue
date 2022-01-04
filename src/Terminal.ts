@@ -17,6 +17,10 @@ const BLOCK_CHARS = [
 ];
 const AS_MODE = asUnion(isLiteral('stdout'), isLiteral('stderr'));
 
+/**
+ * @deprecated
+ * Terminal is intended to be a singleton class, hence instantiating other instances of it is considered a bad idea. It will become a type only export in 1.0.0
+ */
 export class Terminal {
   private indent = 0;
   private dirty_line: symbol | null = null;
