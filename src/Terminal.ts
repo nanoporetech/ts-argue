@@ -62,7 +62,7 @@ export class Terminal {
     }
   }
 
-  private async prompt<T>(message: string, type: string, initial: T, mode: Mode = 'stdout'): Promise<T> {
+  private async prompt<T>(message: string, type: string, initial: T, mode: Mode): Promise<T> {
     assert_mode(mode);
 
     try {
