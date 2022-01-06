@@ -4,12 +4,16 @@ import * as style from './style';
 import enquirer from 'enquirer';
 import type { WriteStream as TTYWriteStream } from 'tty';
 
+type PromptOptions = Parameters<typeof enquirer.prompt>[0];
+
 let std_output: jest.SpiedFunction<typeof process.stdout.write> | null = null;
 let std_error: jest.SpiedFunction<typeof process.stdout.write> | null = null;
 let process_exit: jest.SpiedFunction<typeof process.exit> | null = null;
 let enquirer_prompt: jest.SpiedFunction<typeof enquirer.prompt> | null = null;
 
 const exit = new Error('not a real error');
+
+const unwrap_enquirer_opts = (opt: PromptOptions) => typeof opt === 'function' || Array.isArray(opt) ? null : opt;
 
 interface PublicTerminal {
   indent: number;
@@ -161,7 +165,6 @@ it('new_line prints a newline character', () => {
     ['\n'],
   ]);
 });
-
 it('new_line prints to stderr if specified', () => {
   assertDefined(std_error);
 
@@ -191,7 +194,7 @@ describe('reusable_line', () => {
 
   it('clears line in interactive mode', () => {
 
-    as_public_terminal(terminal).interactive = true;
+    process.stdout.isTTY = true;
     const stdout_moveto = process.stdout.moveCursor = jest.fn();
     const stdout_clearline = process.stdout.clearLine = jest.fn();
     const stdout_cursorto = process.stdout.cursorTo = jest.fn();
@@ -220,11 +223,50 @@ describe('reusable_line', () => {
       expect(stdout_clearline.mock.calls.length).toBe(5);
       expect(stdout_cursorto.mock.calls.length).toBe(4);
     } finally {
-      as_public_terminal(terminal).interactive = false;
+      process.stdout.isTTY = false;
       const stdout = process.stdout as Partial<TTYWriteStream>;
       delete stdout.clearLine;
       delete stdout.cursorTo;
       delete stdout.moveCursor;
+    }
+  });
+
+  it('uses stderr if specified', () => {
+
+    process.stderr.isTTY = true;
+    const stderr_moveto = process.stderr.moveCursor = jest.fn();
+    const stderr_clearline = process.stderr.clearLine = jest.fn();
+    const stderr_cursorto = process.stderr.cursorTo = jest.fn();
+
+    try {
+      const line = terminal.reusable_block('stderr');
+
+      line('a');
+      expect(stderr_moveto.mock.calls.length).toBe(0);
+      expect(stderr_clearline.mock.calls.length).toBe(0);
+      expect(stderr_cursorto.mock.calls.length).toBe(0);
+      line('b');
+      expect(stderr_moveto.mock.calls.length).toBe(1);
+      expect(stderr_clearline.mock.calls.length).toBe(1);
+      expect(stderr_cursorto.mock.calls.length).toBe(1);
+      line('c');
+      expect(stderr_moveto.mock.calls.length).toBe(2);
+      expect(stderr_clearline.mock.calls.length).toBe(2);
+      expect(stderr_cursorto.mock.calls.length).toBe(2);
+      line('d', 'e');
+      expect(stderr_moveto.mock.calls.length).toBe(3);
+      expect(stderr_clearline.mock.calls.length).toBe(3);
+      expect(stderr_cursorto.mock.calls.length).toBe(3);
+      line();
+      expect(stderr_moveto.mock.calls.length).toBe(5);
+      expect(stderr_clearline.mock.calls.length).toBe(5);
+      expect(stderr_cursorto.mock.calls.length).toBe(4);
+    } finally {
+      process.stderr.isTTY = false;
+      const stderr = process.stderr as Partial<TTYWriteStream>;
+      delete stderr.clearLine;
+      delete stderr.cursorTo;
+      delete stderr.moveCursor;
     }
   });
 });
@@ -240,6 +282,19 @@ describe('progress', () => {
     assertDefined(std_output);
 
     expect(std_output.mock.calls).toEqual([
+      ['note [                                                                         ]\n'],
+      ['note [████████████████████████████████████▌                                    ]\n'],
+      ['  note [███████████████████████████████████████████████████████████████████████]\n'],
+    ]);
+  });
+  it('uses stderr when set', () => {
+    const line = terminal.progress_bar('note', 'stderr');
+    line(0);
+    line(0.5);
+    terminal.increase_indent();
+    line(1);
+
+    expect(std_error?.mock.calls).toEqual([
       ['note [                                                                         ]\n'],
       ['note [████████████████████████████████████▌                                    ]\n'],
       ['  note [███████████████████████████████████████████████████████████████████████]\n'],
@@ -264,6 +319,31 @@ describe('print_table', () => {
     assertDefined(std_output);
 
     expect(std_output.mock.calls).toEqual([
+      ['  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'],
+      ['  name                              │ value │ description                      \n'],
+      ['  ──────────────────────────────────┼───────┼──────────────────────────────────\n'],
+      ['  alpha                             │ 42    │ unknown                          \n'],
+      [`  beta                              │ 1000  │ ${style.font_color.red`like a cheater, but worse`}        \n`],
+      [`  ${style.bold`charlie`}                           │ 0     │ pub landlord                     \n`],
+      [`  ${style.background_color.magenta`catch the edge case where the le…`} │       │ print_lines includes indent and …\n`],
+      ['  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'],
+    ]);
+  });
+
+  it('prints to stderr when set', () => {
+    const headers = [
+      'name', 'value', 'description'
+    ];
+    terminal.increase_indent();
+    terminal.print_table([
+      ['alpha', '42', 'unknown'],
+      ['beta', '1000', style.font_color.red`like a cheater, but worse`],
+      [style.bold`charlie`, '0', 'pub landlord'],
+      [style.background_color.magenta`catch the edge case where the length is 1 as we cannot print text + ellipsis`, '', 'print_lines includes indent and newline for each element']
+    ], headers, 'stderr');
+    terminal.decrease_indent();
+
+    expect(std_error?.mock.calls).toEqual([
       ['  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'],
       ['  name                              │ value │ description                      \n'],
       ['  ──────────────────────────────────┼───────┼──────────────────────────────────\n'],
@@ -336,16 +416,52 @@ it('confirm calls enquirer', async () => {
   expect(await terminal.confirm('example', true)).toEqual(true);
 });
 
+it('confirm passes stdout to enquirer by default', async () => {
+  assertDefined(enquirer_prompt);
+  enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stdout }));
+  expect(await terminal.confirm('example', true)).toEqual(true);
+});
+
+it('confirm passes stderr to enquirer if requested', async () => {
+  assertDefined(enquirer_prompt);
+  enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stderr }));
+  expect(await terminal.confirm('example', true, 'stderr')).toEqual(true);
+});
+
 it('input calls enquirer', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockResolvedValue({ result: 'yes' });
   expect(await terminal.input('example', 'yes')).toEqual('yes');
 });
 
+it('input passes stdout to enquirer by default', async () => {
+  assertDefined(enquirer_prompt);
+  enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stdout }));
+  expect(await terminal.input('example', '')).toEqual(true);
+});
+
+it('input passes stderr to enquirer if requested', async () => {
+  assertDefined(enquirer_prompt);
+  enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stderr }));
+  expect(await terminal.input('example', '', 'stderr')).toEqual(true);
+});
+
 it('select calls enquirer', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockResolvedValue({ result: 'yes' });
   expect(await terminal.select('example', ['yes', 'no'])).toEqual('yes');
+});
+
+it('input passes stdout to enquirer by default', async () => {
+  assertDefined(enquirer_prompt);
+  enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stdout }));
+  expect(await terminal.select('example', ['yes', 'no'])).toEqual(true);
+});
+
+it('input passes stderr to enquirer if requested', async () => {
+  assertDefined(enquirer_prompt);
+  enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stderr }));
+  expect(await terminal.select('example', ['yes', 'no'], 'select', 'stderr')).toEqual(true);
 });
 
 it('select throws if an empty list is passed', async () => {
