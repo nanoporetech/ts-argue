@@ -234,33 +234,33 @@ describe('reusable_line', () => {
   it('uses stderr if specified', () => {
 
     process.stderr.isTTY = true;
-    const stdout_moveto = process.stderr.moveCursor = jest.fn();
-    const stdout_clearline = process.stderr.clearLine = jest.fn();
-    const stdout_cursorto = process.stderr.cursorTo = jest.fn();
+    const stderr_moveto = process.stderr.moveCursor = jest.fn();
+    const stderr_clearline = process.stderr.clearLine = jest.fn();
+    const stderr_cursorto = process.stderr.cursorTo = jest.fn();
 
     try {
       const line = terminal.reusable_block('stderr');
 
       line('a');
-      expect(stdout_moveto.mock.calls.length).toBe(0);
-      expect(stdout_clearline.mock.calls.length).toBe(0);
-      expect(stdout_cursorto.mock.calls.length).toBe(0);
+      expect(stderr_moveto.mock.calls.length).toBe(0);
+      expect(stderr_clearline.mock.calls.length).toBe(0);
+      expect(stderr_cursorto.mock.calls.length).toBe(0);
       line('b');
-      expect(stdout_moveto.mock.calls.length).toBe(1);
-      expect(stdout_clearline.mock.calls.length).toBe(1);
-      expect(stdout_cursorto.mock.calls.length).toBe(1);
+      expect(stderr_moveto.mock.calls.length).toBe(1);
+      expect(stderr_clearline.mock.calls.length).toBe(1);
+      expect(stderr_cursorto.mock.calls.length).toBe(1);
       line('c');
-      expect(stdout_moveto.mock.calls.length).toBe(2);
-      expect(stdout_clearline.mock.calls.length).toBe(2);
-      expect(stdout_cursorto.mock.calls.length).toBe(2);
+      expect(stderr_moveto.mock.calls.length).toBe(2);
+      expect(stderr_clearline.mock.calls.length).toBe(2);
+      expect(stderr_cursorto.mock.calls.length).toBe(2);
       line('d', 'e');
-      expect(stdout_moveto.mock.calls.length).toBe(3);
-      expect(stdout_clearline.mock.calls.length).toBe(3);
-      expect(stdout_cursorto.mock.calls.length).toBe(3);
+      expect(stderr_moveto.mock.calls.length).toBe(3);
+      expect(stderr_clearline.mock.calls.length).toBe(3);
+      expect(stderr_cursorto.mock.calls.length).toBe(3);
       line();
-      expect(stdout_moveto.mock.calls.length).toBe(5);
-      expect(stdout_clearline.mock.calls.length).toBe(5);
-      expect(stdout_cursorto.mock.calls.length).toBe(4);
+      expect(stderr_moveto.mock.calls.length).toBe(5);
+      expect(stderr_clearline.mock.calls.length).toBe(5);
+      expect(stderr_cursorto.mock.calls.length).toBe(4);
     } finally {
       process.stderr.isTTY = false;
       const stderr = process.stderr as Partial<TTYWriteStream>;
