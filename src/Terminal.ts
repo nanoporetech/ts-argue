@@ -1,7 +1,7 @@
 import * as style from './style';
 import { prompt } from 'enquirer';
 import { EXIT_CODE } from './exit_code.constants';
-import { asUnion, isLiteral } from 'ts-runtime-typecheck';
+import { isUnion, isLiteral, invariant } from 'ts-runtime-typecheck';
 
 const INDENT_SIZE = 2;
 const BLOCK_CHARS = [
@@ -15,7 +15,11 @@ const BLOCK_CHARS = [
   '▉',
   '█',
 ];
-const AS_MODE = asUnion(isLiteral('stdout'), isLiteral('stderr'));
+
+type Mode = 'stdout' | 'stderr';
+
+const IS_MODE = isUnion(isLiteral('stdout'), isLiteral('stderr'));
+const assert_mode = (mode: Mode) => invariant(IS_MODE(mode), `Expected mode to be stdout or stderr, received ${mode}`);
 
 /**
  * @deprecated
@@ -30,25 +34,27 @@ export class Terminal {
     return process.stdout.columns || 80;
   }
 
-  async confirm(message: string, initial = false): Promise<boolean> {
-    return this.prompt(message, 'confirm', initial);
+  async confirm(message: string, initial = false, mode: Mode = 'stdout'): Promise<boolean> {
+    assert_mode(mode);
+    return this.prompt(message, 'confirm', initial, mode);
   }
 
-  async input(message: string, initial = ''): Promise<string> {
-    return this.prompt(message, 'input', initial);
+  async input(message: string, initial = '', mode: Mode = 'stdout'): Promise<string> {
+    assert_mode(mode);
+    return this.prompt(message, 'input', initial, mode);
   }
 
-  async select<T extends string = string>(message: string, choices: T[], type: 'select' | 'autocomplete' | 'multiselect' = 'select'): Promise<T> {
-    if (choices.length === 0) {
-      throw new Error('Implementation error: cannot display an empty selection list.');
-    }
-    
+  async select<T extends string = string>(message: string, choices: T[], type: 'select' | 'autocomplete' | 'multiselect' = 'select', mode: Mode = 'stdout'): Promise<T> {
+    invariant(choices.length > 0, 'Implementation error: cannot display an empty selection list.');
+    assert_mode(mode);
+
     try {
       const { result } = await prompt<{ result: T }>({
         type,
         name: 'result',
         message,
         choices, 
+        stdout: process[mode],
       });
       return result;
     } catch {
@@ -56,13 +62,16 @@ export class Terminal {
     }
   }
 
-  private async prompt<T>(message: string, type: string, initial: T): Promise<T> {
+  private async prompt<T>(message: string, type: string, initial: T, mode: Mode = 'stdout'): Promise<T> {
+    assert_mode(mode);
+
     try {
       const { result } = await prompt<{ result: T }>({
         type,
         name: 'result',
         message,
         initial,
+        stdout: process[mode],
       });
       return result;
     } catch {
@@ -70,11 +79,13 @@ export class Terminal {
     }
   }
 
-  print_line(line: string, mode: 'stdout' | 'stderr' = 'stdout'): this {
+  print_line(line: string, mode: Mode = 'stdout'): this {
+    assert_mode(mode);
+
     if (this.dirty_line) {
       this.dirty_line = null;
     }
-    process[AS_MODE(mode)].write(
+    process[mode].write(
       line.split('\n')
         .map(sub_line => ' '.repeat(this.indent) + sub_line + '\n')
         .join('')
@@ -83,32 +94,37 @@ export class Terminal {
     return this;
   }
 
-  print_lines(lines: string[], mode: 'stdout' | 'stderr' = 'stdout'): this {
+  print_lines(lines: string[], mode: Mode = 'stdout'): this {
+    assert_mode(mode);
     return this.print_line(lines.join('\n'), mode);
   }
 
-  reusable_block(): (...lines: string[]) => void {
+  reusable_block(mode: Mode = 'stdout'): (...lines: string[]) => void {
+    assert_mode(mode);
+
     const marker = Symbol();
     let line_counter = 0;
     return (...lines: string[]) => {
-      if (this.dirty_line === marker && this.interactive) {
+      if (this.dirty_line === marker && process[mode].isTTY) {
         for (let i = 0; i < line_counter; i += 1) {
-          process.stdout.moveCursor(0, -1);
-          process.stdout.clearLine(0);
+          process[mode].moveCursor(0, -1);
+          process[mode].clearLine(0);
         }
-        process.stdout.cursorTo(0);
+        process[mode].cursorTo(0);
       }
 
       for (const line of lines) {
-        process.stdout.write(' '.repeat(this.indent) + line + '\n');
+        process[mode].write(' '.repeat(this.indent) + line + '\n');
       }
       line_counter = lines.length;
       this.dirty_line = marker;
     };
   }
 
-  progress_bar(label: string): (ratio: number) => void {
-    const fn = this.reusable_block();
+  progress_bar(label: string, mode: Mode = 'stdout'): (ratio: number) => void {
+    assert_mode(mode);
+
+    const fn = this.reusable_block(mode);
     return (ratio: number) => {
       // 3 extra for the space and surrounding brackets
       const available_width = this.width - (label.length + this.indent + 3);
@@ -133,7 +149,9 @@ export class Terminal {
   // TODO allow column size options ( similar to flex: 1 etc )
   // TODO fix row height issues ( newlines in cells, overflow? )
   // TODO resolve emoji issues...
-  print_table(rows: string[][], header?: string[]): this {
+  print_table(rows: string[][], header?: string[], mode: Mode = 'stdout'): this {
+    assert_mode(mode);
+
     // column_widths stores the maximum width of the cells in that column (normalized)
     const column_widths: number[] = [];
 
@@ -192,7 +210,7 @@ export class Terminal {
 
     // STEP 3: print the table!
     {
-      this.print_line(column_widths.map(width => '━'.repeat(width)).join('━┯━'));
+      this.print_line(column_widths.map(width => '━'.repeat(width)).join('━┯━'), mode);
 
       if (header) {
         const cells = [];
@@ -204,9 +222,9 @@ export class Terminal {
           cells.push(text + ' '.repeat(padding_count));
         }
 
-        this.print_line(cells.join(' │ '));
+        this.print_line(cells.join(' │ '), mode);
 
-        this.print_line(column_widths.map(width => '─'.repeat(width)).join('─┼─'));
+        this.print_line(column_widths.map(width => '─'.repeat(width)).join('─┼─'), mode);
       }
       
       for (const row of rows) {
@@ -219,17 +237,19 @@ export class Terminal {
           cells.push(text + ' '.repeat(padding_count));
         }
 
-        this.print_line(cells.join(' │ '));
+        this.print_line(cells.join(' │ '), mode);
       }
 
-      this.print_line(column_widths.map(width => '━'.repeat(width)).join('━┷━'));
+      this.print_line(column_widths.map(width => '━'.repeat(width)).join('━┷━'), mode);
     }
 
     return this;
   }
 
   new_line(mode: 'stderr' | 'stdout' = 'stdout'): this {
-    process[AS_MODE(mode)].write('\n');
+    assert_mode(mode);
+    
+    process[mode].write('\n');
     this.dirty_line = null;
     return this;
   }
