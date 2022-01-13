@@ -82,6 +82,12 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
     } catch (err) {
       const message = err instanceof Error ? err.message : util.inspect(err);
       terminal.print_line(`${font_color.red`error`} - ${message}`, 'stderr').new_line('stderr');
+
+      // defaults to false
+      if (cfg.throw_errors) {
+        throw err;
+      }
+
       return EXIT_CODE.error;
     }
   }

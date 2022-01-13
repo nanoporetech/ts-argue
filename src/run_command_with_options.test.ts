@@ -140,6 +140,13 @@ it('handles a thrown value in an action', async () => {
     ['\n']
   ]);
 });
+it('throws from an action if throw_errors is set', async () => {
+  await expect(run_command_with_options({
+    action() {
+      throw 'BANG';
+    }
+  }, parse_argv(['example']), { ...cfg, throw_errors: true})).rejects.toEqual('BANG')
+});
 it('handles a misspelt subcommand', async () => {
   const result = await run_command_with_options({
     subcommands: {
