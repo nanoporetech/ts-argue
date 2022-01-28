@@ -698,7 +698,3 @@ const flashing_red = style.custom(MODIFIERS.blink, MODIFIERS.high_intensity, FON
 
 terminal.print_line(flashing_red`This text should flash and be red`)
 ```
-
-## Project Status
-
-This is the final pre v1 release and exists purely for backwards compatibility. It's feature complete but still be completely compatible with all the previous versions. Anything that is due to be removed in v1 has been marked as depreciated to aide in transition. It's encouraged to move to the latest release as soon as possible, as future changes will not be made to v0.x unless _really_ required.
