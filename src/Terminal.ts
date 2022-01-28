@@ -21,10 +21,6 @@ type Mode = 'stdout' | 'stderr';
 const IS_MODE = isUnion(isLiteral('stdout'), isLiteral('stderr'));
 const assert_mode = (mode: Mode) => invariant(IS_MODE(mode), `Expected mode to be stdout or stderr, received ${mode}`);
 
-/**
- * @deprecated
- * Terminal is intended to be a singleton class, hence instantiating other instances of it is considered a bad idea. It will become a type only export in 1.0.0
- */
 export class Terminal {
   private dirty_line: symbol | null = null;
   readonly interactive = process.stdin.isTTY;
