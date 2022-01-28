@@ -55,7 +55,7 @@ it('async action custom exit code', async () => {
   ]);
 });
 
-it('sync action default exit code', async () => {
+it('sync action doesn\'t exit', async () => {
   assertDefined(process_exit);
   process.argv = ['node', 'example'];
 
@@ -64,7 +64,7 @@ it('sync action default exit code', async () => {
       action () {
         // nada
       }
-    }, { version: '1'});
+    });
   } catch {
     // test throws harmless error instead of calling process.exit
   }

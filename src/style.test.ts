@@ -1,6 +1,6 @@
 import * as style from './style';
 import { remove_styles, truncate_styled_string } from './style';
-import { ESC } from './style.constants';
+import { ESC, MODIFIERS } from './style.constants';
 
 let force_color: string | undefined;
 
@@ -25,6 +25,19 @@ afterAll(() => {
 it('style produces a StyleTag function for a given prefix/suffix', () => {
   expect(style.style('1', '0')('hello world')).toEqual('\u001b[1mhello world\u001b[0m');
   expect(style.style('1', '0')`hello ${'lucky winner'}`).toEqual('\u001b[1mhello lucky winner\u001b[1m\u001b[0m');
+});
+it('custom produces a StyleTag function for a given prefix/suffix', () => {
+  expect(style.custom('1', '31')('hello world')).toEqual('\u001b[1;31mhello world\u001b[39;22m');
+  expect(style.custom('1', '31')`hello ${'lucky winner'}`).toEqual('\u001b[1;31mhello lucky winner\u001b[1;31m\u001b[39;22m');
+});
+it('custom reject invalid style', () => {
+  expect(() => style.custom('999')).toThrow('');
+});
+it('custom correctly handles pop codes for styles', () => {
+  const bold = ESC + MODIFIERS.high_intensity + 'm';
+  const normal = ESC + MODIFIERS.normal_intensity + 'm';
+  // this isn't an expected scenario... but it's plausible, and requires handling
+  expect(style.bold`bold ${style.custom(MODIFIERS.normal_intensity)`normal`} bold`).toBe(`${bold}bold ${normal}normal${normal}${bold} bold${normal}`);
 });
 it('support_color', () => {
   process.env.FORCE_COLOR = '0';
@@ -123,17 +136,24 @@ describe('truncate_styled_string', () => {
     });
   });
   it('correctly handles nested styles', () => {
+    const bold_prefix = ESC + MODIFIERS.high_intensity + 'm';
+    const dim_prefix = ESC + MODIFIERS.low_intensity + 'm';
+    const suffix = ESC + MODIFIERS.normal_intensity + 'm';
     expect(truncate_styled_string(style.bold`Hello ${style.dim`new`} world`, 14)).toEqual({
       // NOTE tagged literals technically repush the start tag after each nest,
       // but only close at the end. Hence are not symmetrical and cause the truncation algorithm
-      // to emit n + 1 closes at the end ( n being the number of values in the literal ) 
-      text: style.bold`Hello ${style.dim`new`} wor…` + ESC + '22m',
+      // to emit n + 1 closes at the end ( n being the number of values in the literal )
+      // HOWEVER, a recent change now de-duplicates matching tags
+      text: `${bold_prefix}Hello ${dim_prefix}new${suffix}${bold_prefix} wor…${suffix}`,
       length: 14,
     });
   });
   it('correctly handles partial styles', () => {
+    const bold_prefix = ESC + MODIFIERS.high_intensity + 'm';
+    const dim_prefix = ESC + MODIFIERS.low_intensity + 'm';
+    const combined_suffix = ESC + MODIFIERS.normal_intensity + 'm';
     expect(truncate_styled_string(style.bold`Hello ${style.dim`new`} world`, 8)).toEqual({
-      text: style.bold(`Hello ${style.dim`n…`}`), // NOTE output of function here is subtly different to tagged template literal
+      text: `${bold_prefix}Hello ${dim_prefix}n…${combined_suffix}`, // NOTE output of function here is subtly different to tagged template literal
       length: 8,
     });
   });

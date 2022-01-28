@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		"lib": ["es2020"],
+		"removeComments": false,
+		"target": "es2020",
+    "outDir": "./dist",
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"forceConsistentCasingInFileNames": true,
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"importsNotUsedAsValues": "error",
+    "baseUrl": ".",
+    "paths": {
+      "ts-argue": ["../../src/index.ts"]
+    }
+	},
+	"include": [
+		"./src"
+	],
+}

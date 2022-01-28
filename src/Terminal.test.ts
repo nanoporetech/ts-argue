@@ -39,6 +39,9 @@ beforeEach(() => {
 
 afterEach(() => {
   process.stdout.write('\n');
+  process.stdout.isTTY = false;
+  process.stderr.write('\n');
+  process.stderr.isTTY = false;
   std_output && std_output.mockRestore();
   std_error && std_error.mockRestore();
   process_exit && process_exit.mockRestore();
@@ -413,71 +416,119 @@ describe('print_table', () => {
 it('confirm calls enquirer', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockResolvedValue({ result: true });
+  process.stdout.isTTY = true;
   expect(await terminal.confirm('example', true)).toEqual(true);
 });
 
 it('confirm passes stdout to enquirer by default', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stdout }));
+  process.stdout.isTTY = true;
   expect(await terminal.confirm('example', true)).toEqual(true);
 });
 
 it('confirm passes stderr to enquirer if requested', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stderr }));
+  process.stderr.isTTY = true;
   expect(await terminal.confirm('example', true, 'stderr')).toEqual(true);
 });
 
 it('input calls enquirer', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockResolvedValue({ result: 'yes' });
+  process.stdout.isTTY = true;
   expect(await terminal.input('example', 'yes')).toEqual('yes');
 });
 
 it('input passes stdout to enquirer by default', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stdout }));
+  process.stdout.isTTY = true;
   expect(await terminal.input('example', '')).toEqual(true);
 });
 
 it('input passes stderr to enquirer if requested', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stderr }));
+  process.stderr.isTTY = true;
   expect(await terminal.input('example', '', 'stderr')).toEqual(true);
 });
 
 it('select calls enquirer', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockResolvedValue({ result: 'yes' });
+  process.stdout.isTTY = true;
   expect(await terminal.select('example', ['yes', 'no'])).toEqual('yes');
 });
 
-it('input passes stdout to enquirer by default', async () => {
+it('select passes stdout to enquirer by default', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stdout }));
+  process.stdout.isTTY = true;
   expect(await terminal.select('example', ['yes', 'no'])).toEqual(true);
 });
 
-it('input passes stderr to enquirer if requested', async () => {
+it('select passes stderr to enquirer if requested', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stderr }));
+  process.stderr.isTTY = true;
   expect(await terminal.select('example', ['yes', 'no'], 'select', 'stderr')).toEqual(true);
 });
 
 it('select throws if an empty list is passed', async () => {
   assertDefined(enquirer_prompt);
   enquirer_prompt.mockResolvedValue({ result: 'yes' });
+  process.stdout.isTTY = true;
   await expect(() => terminal.select('example', [])).rejects.toThrow('Implementation error: cannot display an empty selection list.');
 });
 
 it('cancelled select prompt call process.exit', async () => {
+  process.stdout.isTTY = true;
   await expect(() => terminal.select('example', ['yes'])).rejects.toEqual(exit);
   expect(process_exit?.mock.calls).toEqual([
     [1]
   ]);
 });
 
+it('multiselect calls enquirer', async () => {
+  assertDefined(enquirer_prompt);
+  enquirer_prompt.mockResolvedValue({ result: 'yes' });
+  process.stdout.isTTY = true;
+  expect(await terminal.multiselect('example', ['yes', 'no'])).toEqual('yes');
+});
+
+it('multiselect passes stdout to enquirer by default', async () => {
+  assertDefined(enquirer_prompt);
+  enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stdout }));
+  process.stdout.isTTY = true;
+  expect(await terminal.multiselect('example', ['yes', 'no'])).toEqual(true);
+});
+
+it('multiselect passes stderr to enquirer if requested', async () => {
+  assertDefined(enquirer_prompt);
+  enquirer_prompt.mockImplementation((opt: PromptOptions) => Promise.resolve({ result: unwrap_enquirer_opts(opt)?.stdout === process.stderr }));
+  process.stderr.isTTY = true;
+  expect(await terminal.multiselect('example', ['yes', 'no'], 'stderr')).toEqual(true);
+});
+
+it('multiselect throws if an empty list is passed', async () => {
+  assertDefined(enquirer_prompt);
+  enquirer_prompt.mockResolvedValue({ result: 'yes' });
+  process.stdout.isTTY = true;
+  await expect(() => terminal.multiselect('example', [])).rejects.toThrow('Implementation error: cannot display an empty selection list.');
+});
+
+it('cancelled multiselect prompt call process.exit', async () => {
+  process.stdout.isTTY = true;
+  await expect(() => terminal.multiselect('example', ['yes'])).rejects.toEqual(exit);
+  expect(process_exit?.mock.calls).toEqual([
+    [1]
+  ]);
+});
+
 it('cancelled confirm prompt call process.exit', async () => {
+  process.stdout.isTTY = true;
   await expect(() => terminal.confirm('example')).rejects.toEqual(exit);
   expect(process_exit?.mock.calls).toEqual([
     [1]
@@ -485,6 +536,7 @@ it('cancelled confirm prompt call process.exit', async () => {
 });
 
 it('cancelled input prompt call process.exit', async () => {
+  process.stdout.isTTY = true;
   await expect(() => terminal.input('example')).rejects.toEqual(exit);
   expect(process_exit?.mock.calls).toEqual([
     [1]

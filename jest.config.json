@@ -1,4 +1,7 @@
 {
 	"preset": "ts-jest",
-	"testEnvironment": "node"
+	"testEnvironment": "node",
+  "moduleNameMapper": {
+    "ts-argue": "<rootDir>/src/index.ts"
+  }
 }
