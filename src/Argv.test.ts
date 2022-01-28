@@ -59,7 +59,7 @@ describe('parse_argv', () => {
   it('executable with flags', () => {
     const { options, arguments: args } = parse_argv(['cake', '-ab', 'sponge', '-c', '-d=12']);
     expect(Array.from(options.entries())).toEqual([
-      ['a', ['true']],
+      ['a', ['sponge']],
       ['b', ['sponge']],
       ['c', ['true']],
       ['d', ['12']]
@@ -75,6 +75,19 @@ describe('parse_argv', () => {
       ['delta', ['12']]
     ]);
     expect(args).toEqual([ 'cake' ]);
+  });
+  it('extra complex options', () => {
+    const { options, arguments: args } = parse_argv(['arg1', '-', '--foo', '--bar', 'value', '-abc', '--foo=false', '-de=123', '--', '--special']);
+    expect(Array.from(options.entries())).toEqual([
+      ['foo', ['true', 'false']],
+      ['bar', ['value']],
+      ['a', ['true']],
+      ['b', ['true']],
+      ['c', ['true']],
+      ['d', ['123']],
+      ['e', ['123']],
+    ]);
+    expect(args).toEqual([ 'arg1', '-', '--special' ]);
   });
 });
 describe('read_option', () => {

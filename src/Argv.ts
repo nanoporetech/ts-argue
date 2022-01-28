@@ -1,7 +1,6 @@
 import type { Argv, SimpleArgv } from './Argv.type';
 
-import { Dictionary, isUndefined, makeNumber, makeString } from 'ts-runtime-typecheck';
-import mri from 'mri';
+import { Dictionary, isUndefined, makeNumber } from 'ts-runtime-typecheck';
 
 export class ArgvImpl implements Argv {
   options: Map<string, string[]>;
@@ -120,20 +119,89 @@ export function resolve_aliases (argv: SimpleArgv, aliases: Dictionary<string>):
     args: argv.arguments.slice(0),
   });
 }
- 
-export function parse_argv(args: string[]): Argv {
-  // TODO replace mri with custom implementation
-  const { _, ...options} = mri(args);
-  return new ArgvImpl({
-    args: Array.from(_), // wrapper required to make array readonly,
-    opts: new Map(Object.entries(options).map(([name, value]) => {
-      // NOTE mri yields either a single Primitive value, or an array of Primitive values
-      // to simplify things we convert that into an array of strings
-      // it's then up to the consumer to interpret that
-      const values = Array.isArray(value) ? value.map(makeString) : [ makeString(value) ];
-      return [name, values];
-    })),
-  });
+
+/**
+ *  Inserts new values into the option map.
+ * 
+ *  Each key has an array of values so this deals with creating the array for the first
+ *  value of that key and appending the value if it's not the first value.
+ */
+function append_option(opts: Map<string, string[]>, opt: string, value: string) {
+  const existing = opts.get(opt) ?? [];
+  existing.push(value);
+  opts.set(opt, existing);
+}
+
+/**
+ * Parses an array of argument like strings to extract the parts that look like options.
+ * 
+ * Complex example including all main syntax derivatives.
+ * 
+ * `arg1 - --foo --bar value -abc --foo=false -de=123 -- --special`
+ * ```
+ * {
+ *   arguments: ['arg1', '-', '--special']
+ *   options: {
+ *     foo: 'true', 'false'
+ *     bar: 'value'
+ *     a: 'true'
+ *     b: 'true'
+ *     c: 'true'
+ *     d: '123'
+ *     e: '123'
+ *   }
+ * }
+ * ```
+ */
+export function parse_argv (argv: string[]): Argv {
+  const args = [];
+  const opts = new Map<string, string[]>();
+  const l = argv.length;
+  let i = 0;
+
+  function split_option (option: string): [string, string] {
+    if (option.includes('=')) {
+      const parts = option.split('=');
+      return [ parts[0], parts.slice(1).join('=') ];
+    }
+    
+    if (i + 1 < l) {
+      const next = argv[i + 1];
+      if (!next.startsWith('-')) {
+        i += 1;
+        return [option, next];
+      }
+    }
+
+    return [option, 'true'];
+  }
+
+  for (; i < l; i += 1) {
+    const arg = argv[i];
+
+    // command arg -- --treat --these --as --args
+    if (arg == '--') {
+      args.push(...argv.slice(i + 1));
+      break;
+    }
+
+    // --opt
+    if (arg.startsWith('--')) {
+      const [opt, value] = split_option(arg.slice(2));
+
+      append_option(opts, opt, value);
+    } else if (arg.startsWith('-') && arg.length > 1) {
+      const [opt, value] = split_option(arg.slice(1));
+
+      for (const ch of opt) {
+        append_option(opts, ch, value);
+      }
+    } else {
+      args.push(arg);
+    }
+  }
+
+  return new ArgvImpl({ args, opts });
 }
 
 /**

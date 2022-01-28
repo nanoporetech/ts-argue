@@ -15,7 +15,7 @@ import { validate_options } from './validate_options';
 
 import util from 'util';
 
-export async function run_command_with_options (command: Command, opts: Argv, cfg: Configuration): Promise<number | void> {
+export async function run_command_with_options (command: Command, opts: Argv, cfg: Configuration = {}): Promise<number | void> {
   const executable = basename(opts.arguments[0]);
   const subcommand_name = opts.arguments[1];
   const subcommand = command.subcommands?.[subcommand_name];
@@ -26,12 +26,30 @@ export async function run_command_with_options (command: Command, opts: Argv, cf
     return run_command_with_options(subcommand, child_options, cfg);
   }
 
-  if (subcommand_name === 'help' || opts.bool('help')) {
+  const display_help = subcommand_name === 'help' || opts.bool('help');
+  const custom_help = command.subcommands?.help;
+
+  if (display_help && custom_help) {
+    const child_options = rename_executable_and_remove_subcommmand(opts, `${executable} help`);
+    child_options.options.delete('help');
+    return run_command_with_options(custom_help, child_options, cfg);
+  }
+
+  if (display_help) {
     print_help(executable, command);
     return EXIT_CODE.ok;
   }
 
-  if (subcommand_name === 'version' || opts.bool('version')) {
+  const display_version = subcommand_name === 'version' || opts.bool('version');
+  const custom_version = command.subcommands?.version;
+
+  if (display_version && custom_version) {
+    const child_options = rename_executable_and_remove_subcommmand(opts, `${executable} version`);
+    child_options.options.delete('version');
+    return run_command_with_options(custom_version, child_options, cfg);
+  }
+
+  if (display_version) {
     print_version(root_executable(executable), cfg);
     return EXIT_CODE.ok;
   }

@@ -26,9 +26,10 @@ const assert_mode = (mode: Mode) => invariant(IS_MODE(mode), `Expected mode to b
  * Terminal is intended to be a singleton class, hence instantiating other instances of it is considered a bad idea. It will become a type only export in 1.0.0
  */
 export class Terminal {
-  private indent = 0;
   private dirty_line: symbol | null = null;
   readonly interactive = process.stdin.isTTY;
+
+  indent = 0;
 
   get width(): number {
     return process.stdout.columns || 80;
@@ -44,8 +45,9 @@ export class Terminal {
     return this.prompt(message, 'input', initial, mode);
   }
 
-  async select<T extends string = string>(message: string, choices: T[], type: 'select' | 'autocomplete' | 'multiselect' = 'select', mode: Mode = 'stdout'): Promise<T> {
+  async select<T extends string = string>(message: string, choices: T[], type: 'select' | 'autocomplete' = 'select', mode: Mode = 'stdout'): Promise<T> {
     invariant(choices.length > 0, 'Implementation error: cannot display an empty selection list.');
+    invariant(process[mode].isTTY, 'Unable to display prompt, terminal is not interactive.');
     assert_mode(mode);
 
     try {
@@ -62,8 +64,28 @@ export class Terminal {
     }
   }
 
+  async multiselect<T extends string = string>(message: string, choices: T[], mode: Mode = 'stdout'): Promise<T[]> {
+    invariant(choices.length > 0, 'Implementation error: cannot display an empty selection list.');
+    invariant(process[mode].isTTY, 'Unable to display prompt, terminal is not interactive.');
+    assert_mode(mode);
+
+    try {
+      const { result } = await prompt<{ result: T[] }>({
+        type: 'multiselect',
+        name: 'result',
+        message,
+        choices, 
+        stdout: process[mode],
+      });
+      return result;
+    } catch {
+      process.exit(EXIT_CODE.error);
+    }
+  }
+
   private async prompt<T>(message: string, type: string, initial: T, mode: Mode): Promise<T> {
     assert_mode(mode);
+    invariant(process[mode].isTTY, 'Unable to display prompt, terminal is not interactive.');
 
     try {
       const { result } = await prompt<{ result: T }>({

@@ -25,6 +25,34 @@ export function style (pre: string, post: string): StyleTag {
   };
 }
 
+export function custom (...styles: string[]): StyleTag {
+  const reverse_styles = styles
+    .map(style => {
+      const pop_code = PUSH_CODES.get(style);
+
+      /*
+        pop codes _should_ have no effect
+        but in some cases they do have an effect, which is why this is supported
+        ```ts
+        style.bold`bold ${style.custom(MODIFIERS.normal)`normal`} bold`;
+        ```
+        in these scenarios we consider the code it's own anti code
+      */
+      if (!pop_code && POP_CODES.has(style)) {
+        return style;
+      }
+
+      if (!pop_code) {
+        throw new Error(`Unknown style code discovered ${style}`);
+      }
+
+      return pop_code;
+    })
+    .reverse();
+
+  return style(styles.join(';'), reverse_styles.join(';'));
+}
+
 export function null_style (template: TemplateStringsArray | string, values: string[]): string {
   if (typeof template === 'string') {
     return template;
@@ -60,24 +88,26 @@ export function truncate_styled_string(source: string, limit: number): { text: s
   }
 
   // eslint-disable-next-line no-control-regex
-  const tokens = asDefined(source.match(/(?:\u001B\[[0-9]+m)|[^\u001B]/ug));
+  const tokens = asDefined(source.match(/(?:\u001B\[[0-9]+(?:;[0-9]+)*m)|[^\u001B]/ug));
 
   // split out tokens into style ( non-printing ) and actual text
   const tagged_tokens = Array.from(tokens).map(token => {
     if (token.startsWith(ESC)) {
-      const code = token.slice(2, -1);
-      const is_valid = PUSH_CODES.has(code) || POP_CODES.has(code);
-      if (!is_valid) {
-        throw new Error(`Unknown style code discovered ${code}`);
+      const codes = token.slice(2, -1).split(';');
+      for (const code of codes) {
+        const is_valid = PUSH_CODES.has(code) || POP_CODES.has(code);
+        if (!is_valid) {
+          throw new Error(`Unknown style code discovered ${code}`);
+        }
       }
-      return { code, text: token };
+      return { codes, text: token };
     } else {
       return { text: token };
     }
   });
 
   // count the non-style tokens to get the actual length
-  const total_letters = tagged_tokens.reduce((acc, token) => 'code' in token ? acc : acc + 1, 0);
+  const total_letters = tagged_tokens.reduce((acc, token) => 'codes' in token ? acc : acc + 1, 0);
 
   // doesn't need truncating so just return the original string
   if (total_letters <= limit) {
@@ -102,14 +132,16 @@ export function truncate_styled_string(source: string, limit: number): { text: s
   let char_count = 0;
 
   for (const token of tagged_tokens) {
-    if (token.code) {
-      if (PUSH_CODES.has(token.code)) {
-        style_stack.unshift(token.code);
-      } else {
-        // well formed style codes should always work in pairs, like brackets
-        // if we follow this assumption any pop code can just be treated as
-        // a generic pop
-        style_stack.shift();
+    if (token.codes) {
+      for (const code of token.codes) {
+        if (PUSH_CODES.has(code)) {
+          style_stack.unshift(code);
+        } else {
+          // well formed style codes should always work in pairs, like brackets
+          // if we follow this assumption any pop code can just be treated as
+          // a generic pop
+          style_stack.shift();
+        }
       }
     } else {
       if (char_count === limit) {
@@ -122,10 +154,17 @@ export function truncate_styled_string(source: string, limit: number): { text: s
 
   chars.push('…');
 
-  // insert the reset codes for the remaining style tokens.
-  for (const code of style_stack) {
-    // checked as defined when we tag the tokens
-    chars.push(ESC + asString(PUSH_CODES.get(code)) + 'm');
+  if (style_stack.length > 0) {
+    // insert the reset codes for the remaining style tokens.
+    // it's possible to combine codes into a single modifier block
+    // separated by semi-colons.
+    const reset_combo = style_stack
+      .map(code => asString(PUSH_CODES.get(code)))
+      // remove duplicated closes
+      .filter((val, i, arr) => val !== arr[i + 1])
+      .join(';');
+
+    chars.push(ESC + reset_combo + 'm');
   }
 
   return {

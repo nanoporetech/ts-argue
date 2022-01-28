@@ -6,7 +6,7 @@ import { parse_argv, rename_executable, resolve_aliases } from './Argv';
 import { isNumber } from 'ts-runtime-typecheck';
 import { COMMON_ALIASES } from './common_aliases.constants';
 
-export async function run_command (command: Command, cfg: Configuration): Promise<void> {
+export async function run_command (command: Command, cfg: Configuration = {}): Promise<void> {
   let options = parse_argv(process.argv.slice(1));
   options = resolve_aliases(options, COMMON_ALIASES);
   if (cfg.name) {

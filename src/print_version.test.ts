@@ -13,3 +13,8 @@ it('prints the version', () => {
   print_version('example', { version: '42' });
   expect(std_output?.mock.calls[0][0]).toEqual(`${bold`example`} version 42\n`);
 });
+
+it('prints the version with default', () => {
+  print_version('example');
+  expect(std_output?.mock.calls[0][0]).toEqual(`${bold`example`} version (unknown)\n`);
+});

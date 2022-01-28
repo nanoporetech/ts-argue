@@ -29,7 +29,7 @@ it('execute subcommand', async () => {
         }
       }
     }
-  }, parse_argv(['example', 'test', 'data']), cfg);
+  }, parse_argv(['example', 'test', 'data']));
   expect(did_run).toEqual(true);
   expect(result).toEqual(undefined);
 });
@@ -37,6 +37,20 @@ it('execute help subcommand', async () => {
   const result = await run_command_with_options({}, parse_argv(['example', 'help']), cfg);
   expect(std_output?.mock.calls[0][0]).toEqual(`${style.bold`USAGE:`} example ${style.dim`[options]`}\n`);
   expect(result).toEqual(0);
+});
+it('execute custom help subcommand', async () => {
+  let did_run = false;
+  const result = await run_command_with_options({
+    subcommands: {
+      help: {
+        action () {
+          did_run = true;
+        }
+      }
+    }
+  }, parse_argv(['example', '--help']), cfg);
+  expect(did_run).toEqual(true);
+  expect(result).toEqual(undefined);
 });
 it('execute help option', async () => {
   const result = await run_command_with_options({}, parse_argv(['example', '--help']), cfg);
@@ -56,6 +70,20 @@ it('execute version subcommand', async () => {
   const result = await run_command_with_options({}, parse_argv(['example', 'version']), cfg);
   expect(std_output?.mock.calls[0][0]).toEqual(style.bold`example` + ' version 1\n');
   expect(result).toEqual(0);
+});
+it('execute custom version subcommand', async () => {
+  let did_run = false;
+  const result = await run_command_with_options({
+    subcommands: {
+      version: {
+        action () {
+          did_run = true;
+        }
+      }
+    }
+  }, parse_argv(['example', '--version']), cfg);
+  expect(did_run).toEqual(true);
+  expect(result).toEqual(undefined);
 });
 it('execute version option', async () => {
   const result = await run_command_with_options({}, parse_argv(['example', '--version']), cfg);
@@ -145,7 +173,7 @@ it('throws from an action if throw_errors is set', async () => {
     action() {
       throw 'BANG';
     }
-  }, parse_argv(['example']), { ...cfg, throw_errors: true})).rejects.toEqual('BANG')
+  }, parse_argv(['example']), { ...cfg, throw_errors: true})).rejects.toEqual('BANG');
 });
 it('handles a misspelt subcommand', async () => {
   const result = await run_command_with_options({
