@@ -39,6 +39,8 @@ beforeEach(() => {
 
 afterEach(() => {
   process.stdout.write('\n');
+  process.stdout.isTTY = false;
+  process.stderr.write('\n');
   process.stderr.isTTY = false;
   std_output && std_output.mockRestore();
   std_error && std_error.mockRestore();
