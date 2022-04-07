@@ -80,6 +80,10 @@ it('prints custom options/commands', () => {
       },
       beta: {
         description: ''
+      },
+      old: {
+        depreciated: true,
+        description: 'please use beta instead'
       }
     },
     aliases: {
@@ -96,10 +100,29 @@ it('prints custom options/commands', () => {
     `${style.bold`USAGE:`} example ${style.dim`[options] [command]`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
-    `  alpha              ${style.dim('this is description')}\n  beta               ${style.dim('')}\n  help               ${style.dim('Display help')}\n  index              ${style.dim('')}\n  version            ${style.dim('Display version')}\n`,
+    `  alpha              ${style.dim('this is description')}\n  beta               ${style.dim('')}\n  help               ${style.dim('Display help')}\n  index              ${style.dim('')}\n  ${style.strikethrough`old`}                ${style.dim('please use beta instead')}\n  version            ${style.dim('Display version')}\n`,
     '\n',
     style.bold('OPTIONS:') + '\n',
     `  --deactivate       ${style.dim('an option perhaps')}\n  --eel              ${style.dim('slimy')}\n  -h, --help         ${style.dim('Output usage information')}\n  -v, --version      ${style.dim('Output the version number')}\n  -z, --zeb, --zebra ${style.dim('')}\n`,
+    '\n',
+  ]);
+});
+
+it('prints depreciated', () => {
+  assertDefined(std_output);
+  print_help('example', {
+    depreciated: true
+  });
+  expect(std_output.mock.calls.map(([str]) => str)).toEqual([
+    style.reverse` DEPRECIATED ` + '\n',
+    '\n',
+    `${style.bold`USAGE:`} example ${style.dim`[options]`}\n`,
+    '\n',
+    style.bold('COMMANDS:') + '\n',
+    `  help          ${style.dim('Display help')}\n  version       ${style.dim('Display version')}\n`,
+    '\n',
+    style.bold('OPTIONS:') + '\n',
+    `  -h, --help    ${style.dim('Output usage information')}\n  -v, --version ${style.dim('Output the version number')}\n`,
     '\n',
   ]);
 });
@@ -153,7 +176,8 @@ it('prints automatic examples', () => {
   print_help('example', {
     subcommands: {
       a: { action () { return; } },
-      b: { action () { return; } }
+      b: { action () { return; } },
+      c: { depreciated: true },
     }
   });
 
@@ -165,7 +189,7 @@ it('prints automatic examples', () => {
     `  ${style.dim`${'example b'}`}\n`,
     '\n',
     style.bold('COMMANDS:') + '\n',
-    `  a             ${style.dim('')}\n  b             ${style.dim('')}\n  help          ${style.dim('Display help')}\n  version       ${style.dim('Display version')}\n`,
+    `  a             ${style.dim('')}\n  b             ${style.dim('')}\n  ${style.strikethrough`c`}             ${style.dim('')}\n  help          ${style.dim('Display help')}\n  version       ${style.dim('Display version')}\n`,
     '\n',
     style.bold('OPTIONS:') + '\n',
     `  -h, --help    ${style.dim('Output usage information')}\n  -v, --version ${style.dim('Output the version number')}\n`,

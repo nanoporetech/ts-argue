@@ -119,8 +119,13 @@ it('background_color', () => {
   expect(style.background_color.bright_cyan('example')).toEqual('\u001b[106mexample\u001b[49m');
   expect(style.background_color.bright_white('example')).toEqual('\u001b[107mexample\u001b[49m');
 });
-it('remove_styles', () => {
-  expect(remove_styles(style.bold`Hello world!`)).toEqual('Hello world!');
+describe('remove_styles', () => {
+  it('basic styles', () => {
+    expect(remove_styles(style.bold`Hello world!`)).toEqual('Hello world!');
+  });
+  it('compound style elements', () => {
+    expect(remove_styles('\u001b[2;4mHello world!\u001b[22;24m')).toEqual('Hello world!');
+  });
 });
 describe('truncate_styled_string', () => {
   it('doesn\'t truncate string with exact length', () => {

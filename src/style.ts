@@ -76,7 +76,7 @@ export function supports_color(env: Dictionary<string | undefined> = process.env
 
 export function remove_styles(str: string): string {
   // eslint-disable-next-line no-control-regex
-  return str.replace(/\u001B\[[0-9]+m/ug, '');
+  return str.replace(/\u001B\[[0-9]+(?:;[0-9]+)*m/ug, '');
 }
 
 export function truncate_styled_string(source: string, limit: number): { text: string; length: number } {

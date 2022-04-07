@@ -48,7 +48,9 @@ export function print_examples (exe_name: string, command: Command): void {
   // with the correct prefix
   if (command.subcommands) {
     for (const [name, subcommand] of Object.entries(command.subcommands)) {
-      print_examples(`${exe_name} ${name}`, subcommand);
+      if (!subcommand.depreciated) {
+        print_examples(`${exe_name} ${name}`, subcommand);
+      }
     }
   }
 }

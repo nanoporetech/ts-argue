@@ -3,7 +3,7 @@
 ![100% coverage](https://img.shields.io/badge/coverage-100%25-success)
 ![npm](https://img.shields.io/npm/dm/ts-argue)
 
-Creating a command line tool ( CLT ) that does more than 1 thing can quickly become a mess of flags and conditional logic. ts-argue is a framework for composing modular Node.js CLTs from a series of simple Command definitions. A Command can define an action, or collect multiple subcommands in a group. Allowing you to compose a intuitive hierarchy of actions for your tool. As a bonus they even generate detailed and accurate help text for users. 
+Creating a command line tool ( CLT ) that does more than 1 thing can quickly become a mess of flags and conditional logic. ts-argue is a framework for composing modular Node.js CLTs from a series of simple Command definitions. A Command can define an action, or collect multiple subcommands in a group. Allowing you to compose a intuitive hierarchy of actions for your tool. As a bonus they even generate detailed and accurate help text for users.
 
 ## Getting started
 
@@ -24,7 +24,7 @@ You can try the example by downloading this repo and following the instructions 
 Applications in ts-argue are defined as a graph of `Command` objects. These are just a normal objects that implement the `Command` interface that ts-argue defines. To execute the command you call `run_command` passing in the command you want to run. Process arguments are automatically processed and interpreted for the command.
 
 ```ts
-import type { Command } from 'ts-argue';
+import { Command, run_command } from 'ts-argue';
 
 const my_command: Command = {
   description: "This is my command, it doesn't do anything"
@@ -191,7 +191,7 @@ import type { Command, Argv } from 'ts-argue';
 
 const foo_command: Command = {
   async action (opts: Argv) {
-    // 
+    // [...]
   }
 }
 ```
