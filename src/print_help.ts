@@ -32,7 +32,7 @@ export function print_help(executable: string, command: Command): void {
   let longest_name = 7;
   if (command.subcommands) {
     for (const [ cmdname, cmd ] of Object.entries(command.subcommands)) {
-      subcommands.set(cmdname, cmd.description ?? '');
+      subcommands.set(cmd.depreciated ? style.strikethrough(cmdname) : cmdname, cmd.description ?? '');
       longest_name = Math.max(cmdname.length, longest_name);
     }
   }
@@ -55,7 +55,12 @@ export function print_help(executable: string, command: Command): void {
     longest_name = Math.max(label.length, longest_name);
   }
 
-  if (command.description) {
+  if (command.depreciated) {
+    terminal.print_line(style.reverse` DEPRECIATED `);
+    terminal.new_line();
+  }
+
+  if (command.description) {  
     terminal.print_line(command.description);
     terminal.new_line();
   }
@@ -100,8 +105,9 @@ export function print_help(executable: string, command: Command): void {
   // NOTE we want to alphabetically sort and format the subcommands into something nice
   terminal.print_lines(
     Array.from(subcommands)
-      .sort((a, b) => a[0] > b[0] ? 1 : -1)
-      .map(([name, description]) => `${name.padEnd(longest_name)} ${style.dim(description)}`)
+      .map(([name, description]) => ({ unstyled: style.remove_styles(name), name, description }))
+      .sort((a, b) => a.unstyled > b.unstyled ? 1 : -1)
+      .map(({ name, unstyled, description }) => `${name}${' '.repeat(longest_name - unstyled.length)} ${style.dim(description)}`)
   );
   end_group();
 
